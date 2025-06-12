@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KCSR Breads atbp</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root {
+      --bg-color: #fff8f0;
+      --text-color: #333;
+      --card-bg: #fff;
+      --order-bg: #fef1e6;
+      --footer-bg-image: url("withbread.jpg");
+    }
+
+    body.dark {
+      --bg-color: #1e1e1e;
+      --text-color: #eee;
+      --card-bg: #2a2a2a;
+      --order-bg: #333;
+      --footer-bg: #2a2a2a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      transition: background-color 0.3s, color 0.3s;
+      z-index: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed; /* or absolute */
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("creamcheese.jpg");
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-position: center bottom;
+      opacity: 0.3; /* Change this for desired transparency */
+      z-index: -1;
+      pointer-events: none; /* Allow clicks through the background */
+    }
+
+
+    header {
+      background-color: var(--footer-bg);
+      text-align: center;
+      padding: 0.25rem;
+
+    }
+
+    header img {
+      max-width: 80px;
+    }
+
+    .dark-toggle {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #444;
+    }
+
+    section {
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+    }
+
+    .product {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: var(--card-bg);
+      padding: 1rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .product img {
+      max-width: 800px;
+      border-radius: 1rem;
+      margin-bottom: 1rem;
+      transition: transform 0.4s ease;
+      cursor: pointer;
+    }
+
+    .product img.zoomed {
+      transform: scale(1.5);
+    }
+
+    .order {
+      background: var(--order-bg);
+      padding: 1rem;
+      border-radius: 1rem;
+      max-width: 600px;
+      margin: 2rem auto;
+      font-size: 0.9rem;
+    }
+
+    form input,
+    form textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .buttons button {
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      color: rgb(14, 13, 13);
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-fb {
+      background-color: #b7d3f7;
+    }
+
+    .btn-wa {
+      background-color: #bef8d3;
+    }
+
+    .buttons img {
+      width: 20px;
+      margin-right: 8px;
+    }
+
+    .preview {
+      margin-top: 0.25rem;
+      background: var(--card-bg);
+      padding: 0.75rem;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      font-size: 0.85rem;
+      border: 1px solid #ccc;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background-color: #333;
+      color: white;
+      padding: 0.75rem 1.2rem;
+      border-radius: 8px;
+      opacity: 0;
+      transition: opacity 0.6s ease-in-out;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1rem;
+      font-size: 0.8rem;
+      background-color: var(--footer-bg);
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      .buttons {
+        flex-direction: column;
+      }
+
+      .product img {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+    🌓
+  </div>
+  <div class="header">
+  <header>
+    <img src="logo4.png" alt="KCSR Breads Logo" /> 
+    <!-- <text>KCSR Breads</text> -->
+    <!-- <h1>KCSR Breads</h1> -->
+  </header>
+  </div>
+
+  <section class="product">
+    <img src="ensaymada2.jpg" id="zoomImage" alt="Special Ensaymada">
+    <h2>Special Ensaymada</h2>
+    <p>Soft, buttery, and topped with cheese — our signature ensaymada is a nostalgic Filipino treat.</p>
+    <p><strong>Intro Price:</strong> RM 5.00</p>
+  </section>
+
+  <section class="order">
+    <h2>Order Now</h2>
+    <form id="orderForm">
+      <input type="text" id="name" placeholder="Your Name" required />
+      <input type="tel" id="phone" placeholder="Phone Number" required />
+      <input type="number" id="pieces" placeholder="Number of Pieces (e.g., 4)" required />
+      <input type="date" id="date" required />
+      <input type="time" id="time" required />
+      <textarea id="otherDetails" rows="2" placeholder="Other details..."></textarea>
+
+      <div class="preview" id="previewBox">Your order message will appear here...</div>
+
+      <div class="buttons">
+        <button type="button" class="btn-wa" onclick="validateAndSend('wa')">
+          <img src="whatsappicon.png" alt="WhatsApp"> Send via WhatsApp
+        </button>
+        <button type="button" class="btn-fb" onclick="validateAndSend('fb')">
+          <img src="fbicon.png" alt="Messenger"> Copy to clipboard and chat via Messenger
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <footer>
+    &copy; KCSR Breads atbp. All rights reserved.
+  </footer>
+
+  <div class="toast" id="toast">Order message copied to clipboard!</div>
+
+  <script>
+    const form = document.getElementById("orderForm");
+    const toast = document.getElementById("toast");
+    const previewBox = document.getElementById("previewBox");
+
+    const zoomImage = document.getElementById('zoomImage');
+    zoomImage.addEventListener('click', () => {
+      zoomImage.classList.toggle('zoomed');
+    });
+
+    function buildMessage() {
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const pieces = document.getElementById("pieces").value;
+      const date = document.getElementById("date").value;
+      const time = document.getElementById("time").value;
+      const other = document.getElementById("otherDetails").value;
+
+      return `Hi KCSR! I'd like to order special ensaymada:\n\nName: ${name}\nPhone: ${phone}\nPieces: ${pieces}\nDate: ${date}\nTime: ${time}\nOther details: ${other}`;
+    }
+
+    form.addEventListener('input', () => {
+      previewBox.textContent = buildMessage();
+    });
+
+    function showToast(message = "Order message copied to clipboard!") {
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 2000);
+    }
+
+    function validateAndSend(method) {
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const message = buildMessage();
+
+      if (method === "fb") {
+        navigator.clipboard.writeText(message).then(() => {
+          showToast();
+          const fbUsername = "zenunycats";
+          window.open(`https://m.me/${fbUsername}`, "_blank");
+        }).catch(() => {
+          alert("Failed to copy to clipboard.");
+        });
+      } else if (method === "wa") {
+        const whatsappNumber = "601136003291";
+        window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, "_blank");
+      }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+    }
+  </script>
+</body>
+</html>
