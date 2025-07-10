@@ -26,6 +26,7 @@ body {
   color: var(--text-color);
   line-height: 1.6;
   transition: background-color 0.3s, color 0.3s;
+  height: 100%;
 }
 
 body::before {
@@ -64,14 +65,14 @@ header img {
 
 section {
   padding: 1rem;
-  max-width: 480px;
-  margin: auto;
+  max-width: 900px;
+  margin: 0;
 }
 
 .products {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  /* grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); */
+  gap: 20px;
   padding: 2rem;
 }
 
@@ -425,7 +426,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Keep mobile layout unchanged */
 .container {
-  display: block;
+  display: grid;
+  flex: 1;
 }
 
 /* Desktop-only cart sidebar */
@@ -434,10 +436,13 @@ input[type="number"]::-webkit-outer-spin-button {
     display: flex;
     align-items: flex-start;
     gap: 1rem;
+
   }
 
   .products {
     flex: 2;
+    grid-template-columns: 1fr;
+
     
   }
 
@@ -452,5 +457,31 @@ input[type="number"]::-webkit-outer-spin-button {
     border-radius: 2px;
     background-color: var(--bg-color);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+}
+
+/* Footer styling */
+footer {
+  /* background-color: #f2f2f2; */
+  padding: 5px;
+  text-align: center;
+  font-size: 10px;
+  color: #555;
+  /* border-top: 1px solid #ccc; */
+}
+
+/* Make body use full height and flex layout */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Two columns on screens wider than 600px */
+@media (min-width: 600px) {
+  .products {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

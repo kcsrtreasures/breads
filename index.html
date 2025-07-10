@@ -55,6 +55,22 @@
 
       <button type="button" onclick="addToCart('Spinach Pandesal', document.getElementById('qty-spinach').value, 10.00)">Add to Cart</button>
     </div> -->
+
+        <!-- Spinach Pandesal -->
+    <div class="product">
+      <img src="malpancut.jpg" onclick="toggleZoom(this)" alt="Spinach Pandesal">
+      <h2>Spinach Pandesal</h2>
+      <p>Pandesal with spinach for a healthier choice.</p>
+      <p><strong>RM 10.00/10pcs.</strong></p>
+
+      <div class="quantity-control">
+        <button type="button" id="minus-spinach" onclick="changeQuantity('qty-spinach', -1)">−</button>
+        <input type="number" id="qty-spinach" min="1" max="99" value="0" step="1" />
+        <button type="button" onclick="changeQuantity('qty-spinach', 1)">+</button>
+      </div>
+
+      <button type="button" onclick="addToCart('Spinach Pandesal', document.getElementById('qty-spinach').value, 10.00)">Add to Cart</button>
+    </div>
   </section>
 
   <!-- CART & ORDER SECTION -->
