@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About Us - KCSR Breads atbp</title>
+  <link rel="icon" type="image/png" href="breadroll.png"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #faf7f2, #f2e7dc);
+      color: #2e2e2e;
+    }
+
+    /* NAVBAR */
+    header {
+      background: linear-gradient(90deg, #e6d5c3, #c9a574);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0rem 2rem;
+
+    }
+
+    .navbar .logo img {
+      height: 50px;
+    }
+
+    .navbar .links {
+      display: flex;
+      gap: 3.5rem;
+    }
+
+    .navbar .links a {
+      position: relative;
+      text-decoration: none;
+      font-weight: 500;
+      color: #2e2e2e;
+      padding-bottom: 2px;
+      transition: color 0.3s;
+    }
+
+    .navbar .links a::after {
+      content: "";
+      position: absolute;
+      width: 0%;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #6b4b2c;
+      transition: width 0.3s ease;
+    }
+
+    .navbar .links a:hover::after,
+    .navbar .links a.active::after {
+      width: 100%;
+    }
+
+    .navbar .links a.active {
+      color: #6b4b2c;
+    }
+
+    .navbar .actions .btn {
+      padding: 0.5rem 1.2rem;
+      background: linear-gradient(90deg, #6b4b2c, #4a3320);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .navbar .actions .btn:hover {
+      background: linear-gradient(90deg, #4a3320, #2e1f12);
+      transform: scale(1.05);
+    }
+
+    /* ABOUT CONTENT */
+    main {
+      flex: 1;
+      position: relative;
+      padding: 2rem;
+      background: url('creamcheese.jpg') center/cover no-repeat;
+      overflow: auto; /* enable scrolling */
+      display: block;  /* allow natural flow */
+    }
+
+    main::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 248, 240, 1) 0%,   /* fully opaque at top */
+        rgba(255, 248, 240, 0.85) 20%, 
+        rgba(255, 248, 240, 0.7) 40%, 
+        rgba(255, 248, 240, 0.5) 60%, 
+        rgba(255, 248, 240, 0.3) 80%, 
+        rgba(255, 248, 240, 0) 100%   /* transparent at bottom */
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+
+    .about-container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 2rem auto;       /* add vertical spacing from top */
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.85); /* slightly more transparent */
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* softer shadow */
+      line-height: 1.8;
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+      backdrop-filter: blur(6px); /* subtle glass effect */
+    }
+
+    .about-container h1 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: #6b4b2c;
+    }
+
+    .about-container p {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      color: #444;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      background: linear-gradient(90deg, #e6d5c3, #c9a574);
+      color: #2e2e2e;
+      padding: 0rem 0;
+      font-size: 0.75rem;
+      margin-top: auto;
+    }
+
+    /* MOBILE NAV */
+    .mobile-nav {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      /* Hide Shop Now button in navbar on mobile */
+      .navbar .actions {
+        display: none;
+      }
+
+      /* Show floating button */
+      .mobile-nav {
+        display: block;
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+      }
+
+      .mobile-nav a {
+        display: inline-block;
+        padding: 0.7rem 1.5rem;
+        background: linear-gradient(90deg, #6b4b2c, #4a3320);
+        color: #fff;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        transition: transform 0.2s, background 0.3s;
+      }
+
+      .mobile-nav a:hover {
+        background: linear-gradient(90deg, #4a3320, #2e1f12);
+        transform: scale(1.05);
+      }
+    }
+
+    /* ANIMATION */
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="navbar">
+      <div class="logo">
+        <a href="index.html"><img src="logo4.png" alt="KCSR Breads Logo" /></a>
+      </div>
+      <nav class="links">
+        <a href="index.html">Home</a>
+        <a href="about.html" class="active">About Us</a>
+      </nav>
+      <div class="actions">
+        <a href="index.html" class="btn">🛒 Shop Now</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="about-container">
+      <h1>About KCSR Breads atbp</h1>
+      <p>
+        Welcome to <strong>KCSR Breads atbp</strong>! We are a homegrown bakery passionate about creating
+        freshly baked breads, pastries, and Filipino treats that bring comfort and joy to every table.
+      </p>
+      <p>
+        Our specialty is Ensaymada — and we’ll be adding more delicious options soon.  
+        Each product is lovingly prepared with quality ingredients and a dedication to authentic taste.
+      </p>
+      <p>
+        It all started when friends encouraged us to sell our ensaymada.  
+        Now we look forward to recreating Filipino breads that we all grew up missing.
+      </p>
+      <p>
+        At KCSR, we believe in celebrating tradition while adding a modern twist to classic flavors.
+        Whether you’re ordering for your family, a celebration, or just a simple snack, we are here to serve you.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 KCSR Breads atbp. All rights reserved.
+  </footer>
+
+  <!-- Mobile Floating Button -->
+  <nav id="mobileNav" class="mobile-nav">
+    <a href="index.html">🧁 Get Baked Goodies</a>
+  </nav>
+</body>
+</html>

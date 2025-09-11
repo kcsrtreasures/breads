@@ -7,21 +7,45 @@
   <title>KCSR Breads atbp</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌓</div>
-
   <header>
-    <img src="logo4.png" alt="KCSR Breads Logo" />
+
+    <div class="navbar">
+      <div class="logo">
+        <a href="/index.html"><img src="logo4.png" alt="KCSR Breads Logo" /></a>
+      </div>
+      
+      <nav class="links">
+        <a href="/index.html">Home</a>
+        <a href="/about.html">About Us</a>
+
+      </nav>
+
+      <div class="actions">
+        <div class="cart-icon-wrapper">
+          <img src="carticon.png" id="cartToggle" class="cart-toggle" alt="Toggle Cart" />
+          <span id="cartCount" class="cart-badge">0</span>
+        </div>
+        <span id="cartSubtotal" class="cart-subtotal">RM 0.00</span>
+
+
+        <!-- <img src="carticon.png" id="cartToggle" class="cart-toggle" alt="Toggle Cart" /> -->
+
+        <button type="button" class="login">Log in</button>
+        <!-- <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">🌓</div> -->
+      </div>
+    </div>
   </header>
+  
 
 
-
-
-
-
+<main class="main">
 <div class="container">
+  <div class="content">
   <!-- PRODUCTS SECTION -->
   <section class="products">
     <!-- Special Ensaymada -->
@@ -40,6 +64,22 @@
       <button type="button" onclick="addToCart('Special Ensaymada', document.getElementById('qty-ensaymada').value, 8.00)">Add to Cart</button>
     </div>
 
+    <!-- Mini Cheese Rolls -->
+    <!-- <div class="product">
+      <img src="malpan.jpg" onclick="toggleZoom(this)" alt="Mini Cheese Rolls">
+      <h2>Mini Cheese Rolls</h2>
+      <p>Soft, pillowy bread stuffed with cheese.</p>
+      <p><strong>RM 30.00/6pcs.</strong></p>
+
+      <div class="quantity-control">
+        <button type="button" id="minus-minicheese" onclick="changeQuantity('qty-minicheese', -1)">−</button>
+        <input type="number" id="qty-minicheese" min="1" max="99" value="0" step="1" />
+        <button type="button" onclick="changeQuantity('qty-minicheese', 1)">+</button>
+      </div>
+
+      <button type="button" onclick="addToCart('Mini Cheese Rolls', document.getElementById('qty-minicheese').value, 30.00)">Add to Cart</button>
+    </div> -->
+    
     <!-- Spinach Pandesal -->
     <!-- <div class="product">
       <img src="malpancut.jpg" onclick="toggleZoom(this)" alt="Spinach Pandesal">
@@ -56,26 +96,51 @@
       <button type="button" onclick="addToCart('Spinach Pandesal', document.getElementById('qty-spinach').value, 10.00)">Add to Cart</button>
     </div> -->
 
-        <!-- Spinach Pandesal -->
+    <!-- Pumpkin Pandesal -->
     <!-- <div class="product">
-      <img src="malpancut.jpg" onclick="toggleZoom(this)" alt="Spinach Pandesal">
-      <h2>Spinach Pandesal</h2>
-      <p>Pandesal with spinach for a healthier choice.</p>
+      <img src="ens2.jpg" onclick="toggleZoom(this)" alt="Pumpkin Pandesal">
+      <h2>Pumpkin Pandesal</h2>
+      <p>Pandesal with pumpkin for a healthier choice.</p>
       <p><strong>RM 10.00/10pcs.</strong></p>
 
       <div class="quantity-control">
-        <button type="button" id="minus-spinach" onclick="changeQuantity('qty-spinach', -1)">−</button>
-        <input type="number" id="qty-spinach" min="1" max="99" value="0" step="1" />
-        <button type="button" onclick="changeQuantity('qty-spinach', 1)">+</button>
+        <button type="button" id="minus-pumpkin" onclick="changeQuantity('qty-pumpkin', -1)">−</button>
+        <input type="number" id="qty-pumpkin" min="1" max="99" value="0" step="1" />
+        <button type="button" onclick="changeQuantity('qty-pumpkin', 1)">+</button>
       </div>
 
-      <button type="button" onclick="addToCart('Spinach Pandesal', document.getElementById('qty-spinach').value, 10.00)">Add to Cart</button>
+      <button type="button" onclick="addToCart('Pumpkin Pandesal', document.getElementById('qty-pumpkin').value, 10.00)">Add to Cart</button>
     </div> -->
+
+    <!-- Malunggay Pandesal -->
+    <!-- <div class="product">
+      <img src="malpancut.jpg" onclick="toggleZoom(this)" alt="Malunggay Pandesal">
+      <h2>Malunggay Pandesal</h2>
+      <p>Pandesal with malunggay for a healthier choice.</p>
+      <p><strong>RM 10.00/10pcs.</strong></p>
+
+      <div class="quantity-control">
+        <button type="button" id="minus-malunggay" onclick="changeQuantity('qty-malunggay', -1)">−</button>
+        <input type="number" id="qty-malunggay" min="1" max="99" value="0" step="1" />
+        <button type="button" onclick="changeQuantity('qty-malunggay', 1)">+</button>
+      </div>
+
+      <button type="button" onclick="addToCart('Malunggay Pandesal', document.getElementById('qty-malunggay').value, 10.00)">Add to Cart</button>
+    </div> -->
+
+  <!-- Dynamic products section -->
+  <!-- <hr style="margin: 2em 0; border: none; border-top: 1px dashed #aaa;">
+  <h2 style="margin-bottom: 1em;">🆕 More Breads</h2> -->
+  <div id="dynamicProducts" class="product-grid"></div>
+
   </section>
 
   <!-- CART & ORDER SECTION -->
+
   <aside class="order" id="orderForm">
     <section>
+        <!-- <div class="close-cart" onclick="document.querySelector('.order').classList.remove('open')">✖️</div> -->
+
       <h2>🛒 Cart</h2>
       <ul id="cartItems"></ul>
       <p id="cartTotal" style="border-bottom: 0.5px solid #ccc; margin-bottom: 10px;"><strong>Total: RM 0.00</strong></p>
@@ -106,14 +171,121 @@
 
 
 <!-- <button type="button" onclick="printOrderSummary()">🖨️ Print Order</button> -->
-
-
+</div>
+</main>
   <footer>
     &copy; 2025 KCSR Breads atbp. All rights reserved.
   </footer>
 
   <div class="toast" id="toast">Order message copied to clipboard!</div>
 
+<nav id="mobileNav" class="mobile-nav">
+  <button class="nav-btn">
+    <i class="fas fa-home"></i>
+    <a href="/index.html">
+    <span>
+      <span style="display: inline-flex; flex-direction: column; align-items: center;">
+  <svg
+    class="icon"
+    stroke="currentColor"
+    fill="none"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    height="1em"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <!-- Roof -->
+    <path d="M3 10L12 3l9 7"></path>
+    <!-- House body -->
+    <path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"></path>
+    <!-- Door -->
+    <path d="M10 21v-6h4v6"></path>
+  </svg>
+  <span style="font-size: 0.5em;">Home</span>
+</span>
+
+      
+    </span>  </a>
+  </button>
+  <button class="nav-btn">
+    <i class="fas fa-info-circle"></i>
+    <a href="/about.html">
+    <span>
+
+<span style="display: inline-flex; flex-direction: column; align-items: center;">
+  <svg
+    class="icon"
+    stroke="currentColor"
+    fill="none"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    height="1em"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <!-- Face circle -->
+    <circle cx="12" cy="12" r="10"></circle>
+    <!-- Left eye -->
+    <circle cx="9" cy="10" r="1"></circle>
+    <!-- Right eye (monocle) -->
+    <circle cx="15" cy="10" r="3"></circle>
+    <!-- Monocle handle -->
+    <line x1="18" y1="13" x2="20" y2="15"></line>
+    <!-- Mouth (smirk) -->
+    <path d="M9 16c1.5 1 4.5 1 6 0"></path>
+  </svg>
+  <span style="font-size: 0.5em; color: black;">About Us</span>
+</span>
+
+
+    </span> </a>
+  </button>
+  <button class="nav-btn" onclick="cartToggle()">
+    <i class="fas fa-cart"></i>
+    <!-- <span class="mobile-cart-icon">
+      🛒 <span id="mobileCartCount" class="cart-badge">0</span>
+    </span> -->
+
+    <span style="display: inline-flex; flex-direction: column; align-items: center;">
+  <svg
+    class="icon"
+    stroke="currentColor"
+    fill="none"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    height="1em"
+    width="1em"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="9" cy="21" r="1"></circle>
+    <circle cx="20" cy="21" r="1"></circle>
+    <path
+      d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"
+    ></path>
+  </svg>
+  <span style="font-size: 0.5em;">Cart</span>
+</span>
+
+
+
+  </button>
+  <button type="button" id="mobileLogin" class="login">
+    <i class="fas fa-user"></i>
+    <span>Login</span>
+  </button>
+
+</nav>
+
   <script src="scripts.js"></script>
 </body>
 </html>
+<!--  🛒  -->
+  <!-- 🧐 -->
+   <!-- 🏠 -->

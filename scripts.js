@@ -1,4 +1,5 @@
-const cart = [];
+// const cart = [];
+let cart = [];
 const form = document.querySelector("#orderForm form");
 const toast = document.getElementById("toast");
 const previewBox = document.getElementById("previewBox");
@@ -7,6 +8,229 @@ const cartTotalDisplay = document.getElementById("cartTotal");
 
 const maxQty = 99;
 const minQty = 1;
+
+const grid = document.getElementById("dynamicProducts");
+grid.innerHTML = "";
+
+const isDark = document.body.classList.contains("dark")
+
+// document.getElementById("cartToggle").addEventListener("click", cartToggle);
+
+function syncCartWithDB() {
+  const user = localStorage.getItem("gossipUser");
+  if (user) {
+    fetch("http://127.0.0.1:5001/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ items: cart })
+    })
+    .then(res => res.ok ? res.json() : Promise.reject("Failed to save cart"))
+    .catch(err => console.error("Cart sync error:", err));
+  }
+}
+
+
+// Load saved cart from localStorage (if any)
+function loadCartFromStorage() {
+  const storedCart = localStorage.getItem("cartData");
+  if (storedCart) {
+    try {
+      cart = JSON.parse(storedCart);
+      updateCartDisplay();
+      updateCartBadge();
+      updateCartSubtotal() // your existing method to refresh cart UI
+    } catch (e) {
+      // console.error("Error parsing stored cart:", e);
+    }
+  }
+}
+
+// Save current cart to localStorage
+function saveCartToStorage() {
+  const user = localStorage.getItem("gossipUser");
+  if (user) {
+    localStorage.setItem("cartData", JSON.stringify(cart));
+  }
+}
+
+function clearCart() {
+  // console.log("clearCart called, clearing cart UI");
+
+  // 1. Clear the cart array data
+  cart.length = 0;
+
+  // 2. Remove from localStorage
+  localStorage.removeItem("cart");
+
+  // 3. Clear the cart items container (empty, no text so UI stays consistent)
+  if (cartItems) {
+    cartItems.innerHTML = `<p>Your cart is empty.</p>`;  // empty but ready for new items
+  }
+
+  // 4. Reset total display
+  if (cartTotalDisplay) {
+    cartTotalDisplay.innerHTML = `<strong>Total: RM </strong>`;
+  }
+
+
+  // 5. Update the badge count to hide it
+  updateCartBadge();
+
+    // Reset subtotal display
+  const subtotalEl = document.getElementById("cartSubtotal");
+  if (subtotalEl) {
+    subtotalEl.textContent = "RM 0.00";
+  }
+
+  // setMinPickupDate()
+
+  // const dateInput = document.getElementById("date");
+  // if (dateInput) {
+  //   dateInput.value = "";
+  // }
+
+  // 6. Clear preview box or any other cart summary if you have one
+  if (previewBox) {
+    previewBox.textContent = "";
+  }
+}
+
+
+
+
+async function loadCartFromDatabase() {
+  // console.log("loadCartFromDatabase")
+  // console.trace()
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/cart", {
+      method: "GET",
+      credentials: "include" // so cookies/session tokens are sent
+    });
+
+    if (!res.ok) throw new Error("Failed to load cart");
+    const items = await res.json();
+    // console.log("Loaded cart from DB:", items);
+    
+
+    cart.length = 0; // clear local cart
+
+      cart.push(...items); // load from DB
+
+    updateCartBadge();
+    updateCartDisplay();
+    updateCartSubtotal()
+  } catch (err) {
+    // console.error("Error loading cart:", err);
+  }
+}
+
+function saveCartToDatabase() {
+  console.log("Sending cart to server:", cart);
+  
+  fetch(("http://127.0.0.1:5001/api/cart" || "/api/cart"), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items: cart })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Server response:", data))
+  .catch(err => {
+    console.error("Error saving cart to DB:", err);
+  });
+}
+
+
+
+
+// 🔢 Update cart icon badge count
+function updateCartBadge() {
+  let total = 0;
+  cart.forEach(item => total += parseInt(item.quantity));
+
+  // Desktop
+  const cartCountEl = document.getElementById("cartCount");
+  if (cartCountEl) {
+    cartCountEl.textContent = total;
+    cartCountEl.style.display = total > 0 ? "inline-block" : "none";
+  }
+
+  // Mobile (optional)
+  const mobileCountEl = document.getElementById("mobileCartCount");
+  if (mobileCountEl) {
+    mobileCountEl.textContent = total;
+    mobileCountEl.style.display = total > 0 ? "inline-block" : "none";
+  }
+}
+
+function updateCartSubtotal() {
+  const subtotal = cart.reduce((sum, item) => {
+    return sum + item.quantity * item.price;
+  }, 0);
+
+  const subtotalEl = document.getElementById("cartSubtotal");
+  if (subtotalEl) {
+    subtotalEl.textContent = `RM ${subtotal.toFixed(2)}`;
+  }
+}
+
+
+function cartToggle() {
+  const orderPanel = document.querySelector(".order");
+  if (orderPanel) {
+    orderPanel.classList.toggle("open");
+    // console.log("Cart toggled");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const orderPanel = document.querySelector(".order");
+  const cartToggleBtn = document.getElementById("cartToggle");
+
+  if (!orderPanel || !cartToggleBtn) return;
+
+  // Initial state — show cart only on desktop
+  if (window.innerWidth >= 768) {
+    orderPanel.classList.add("open");
+  } else {
+    orderPanel.classList.remove("open");
+  }
+
+  // Cart toggle works on both desktop and mobile
+  cartToggleBtn.addEventListener("click", () => {
+    orderPanel.classList.toggle("open");
+  });
+});
+
+
+
+
+
+// 👇 Add this below to refresh login button when user switches back to tab
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    // checkAuthFromGossip();
+  }
+});
+
+window.addEventListener("focus", () => {
+  // checkAuthFromGossip();
+});
+
+
+window.addEventListener("storage", (event) => {
+  if (event.key === "gossipUser") {
+    // re-check login across tabs
+  } else if (event.key === "cart") {
+    cart = JSON.parse(event.newValue || "[]");
+    updateCartDisplay();     // Re-render cart items
+    updateCartBadge();       // Update badge number
+    updateCartSubtotal();    // Optional: update cart subtotal in header
+  }
+});
+
+
 
 document.querySelectorAll('input[type="number"]').forEach(input => {
   input.addEventListener('wheel', e => e.preventDefault());
@@ -34,6 +258,10 @@ function changeQuantity(id, delta) {
   val = Math.min(maxQty, Math.max(0, val + delta));
   input.value = val;
   updateMinusButtons(); // Optional if you want minus buttons to disable at 0
+  updateCartDisplay()
+  updateCartBadge();
+  updateCartSubtotal()
+  saveCartToStorage()
 }
 
 
@@ -53,6 +281,24 @@ function addToCart(productName, quantity, price) {
 
   updateCartDisplay();
   // document.querySelector('.order').scrollIntoView({ behavior: "smooth" });
+  updateCartBadge();
+  updateCartSubtotal()
+  saveCartToStorage()
+  syncCartWithDB()
+
+    // 🔹 Save to DB if logged in
+  const user = localStorage.getItem("gossipUser");
+  if (user) {
+    fetch("http://127.0.0.1:5001/api/cart", "", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ items: cart })
+    })
+    .then(res => res.ok ? res.json() : Promise.reject("Failed to save cart"))
+    .catch(err => console.error(err));
+  }
+
 }
 
 function updateCartDisplay() {
@@ -74,7 +320,8 @@ function updateCartDisplay() {
     qtyControl.style.marginLeft = "0px";
     qtyControl.style.marginRight = "0px";
 
-    const minusBtn = document.createElement("qtyBtn");
+    const minusBtn = document.createElement("button");
+    minusBtn.className = "qtyBtn";
     minusBtn.textContent = "−";
     minusBtn.style.cursor = "pointer";
     minusBtn.style.display = "flex";
@@ -84,6 +331,13 @@ function updateCartDisplay() {
     minusBtn.onclick = () => {
       if (item.quantity > 1) {
         item.quantity--;
+        updateCartDisplay()
+        updateCartBadge()
+        updateCartSubtotal()
+        saveCartToStorage()
+        syncCartWithDB()
+
+
       } else {
         const confirmDelete = confirm(`Remove ${item.product} from cart?`);
         if (confirmDelete) {
@@ -91,6 +345,9 @@ function updateCartDisplay() {
         }
       }
       updateCartDisplay();
+      updateCartBadge()
+      updateCartSubtotal()
+      saveCartToStorage()
     };
 
 
@@ -103,7 +360,8 @@ function updateCartDisplay() {
     qtyDisplay.style.minWidth = "20px";
     qtyDisplay.style.textAlign = "center";
 
-    const plusBtn = document.createElement("qtyBtn");
+    const plusBtn = document.createElement("button");
+    plusBtn.className = "qtyBtn"
     plusBtn.textContent = "+";
     plusBtn.style.cursor = "pointer";
     plusBtn.style.display = "flex";
@@ -114,6 +372,10 @@ function updateCartDisplay() {
       if (item.quantity < maxQty) {
         item.quantity++;
         updateCartDisplay();
+        updateCartBadge()
+        updateCartSubtotal()
+        saveCartToStorage()
+        syncCartWithDB()
       }
     };
 
@@ -122,7 +384,7 @@ function updateCartDisplay() {
     qtyControl.appendChild(plusBtn);
 
     // Delete button
-    const delBtn = document.createElement("del-btn");
+    const delBtn = document.createElement("button");
     delBtn.className = "del-btn";
     delBtn.textContent = "🗑️";
     delBtn.setAttribute("aria-label", "Remove item");
@@ -151,6 +413,10 @@ function updateCartDisplay() {
 function removeFromCart(index) {
   cart.splice(index, 1);
   updateCartDisplay();
+  updateCartBadge()
+  updateCartSubtotal()
+  saveCartToStorage()
+  syncCartWithDB()
 }
 
 function buildMessage() {
@@ -273,9 +539,289 @@ function updateMinusButtons() {
 }
 
 
-window.addEventListener("DOMContentLoaded", () => {
-  setMinPickupDate();
-  updateMinusButtons(); // <- this ensures buttons reflect 0 state
+let gossipPopup = null;
+
+function openLogin() {
+  const loginUrl = "http://127.0.0.1:5173/login?redirect=http://127.0.0.1:5501/";
+  gossipPopup = window.open(loginUrl, "LoginPopup", "width=600,height=600");
+
+  // Track popup close — but don't trigger auth unless user is logged in
+  const closeCheck = setInterval(() => {
+    if (gossipPopup && gossipPopup.closed) {
+      clearInterval(closeCheck);
+      console.log("Popup closed by user");
+      // No auth check here — let LOGIN_SUCCESS handle it
+    }
+  }, 500);
+}
+
+// Listen for login success messages globally (outside openLogin)
+window.addEventListener("message", function(event) {
+  const allowedOrigin = "http://127.0.0.1:5173";
+  if (event.origin !== allowedOrigin) return;
+
+  const { type, user, token } = event.data;
+
+  if (type === "LOGIN_SUCCESS") {
+    localStorage.setItem("gossipUser", JSON.stringify(user));
+    // console.log("User logged in:", user);
+
+    // Allow auth checks again after login
+    isLoggingOut = false;
+
+    // Update UI
+    updateLoginButton(user);
+
+    // Load cart after login
+    loadCartFromDatabase();
+
+    // If login came from popup, close it
+    if (gossipPopup && !gossipPopup.closed) {
+      gossipPopup.close();
+    }
+
+    // Sync with opener if this is in a popup
+    if (window.opener) {
+      window.opener.postMessage({ type: "LOGIN_SYNC" }, "*");
+    }
+  }
 });
+
+
+
+      let isLoggingOut = false;
+function updateLoginButton(user = null) {
+  const loginBtns = document.querySelectorAll(".login");
+  loginBtns.forEach((loginBtn) => {
+    const parent = loginBtn.parentNode;
+
+    // Create a clean button clone (removes old event listeners)
+    const newLoginBtn = loginBtn.cloneNode(true);
+
+    if (user) {
+      const name = user.fullName.split(" ")[0];
+
+      // Create wrapper to hold button and dropdown
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      wrapper.style.display = "inline-block";
+
+      // Update button appearance
+      newLoginBtn.textContent = `👋 Hi! ${name}`;
+      newLoginBtn.title = "";
+      newLoginBtn.style.cursor = "pointer";
+      // newLoginBtn.style.background = isDark ? "#333" : "#fff";
+      newLoginBtn.style.color = isDark ? "#fff" : "#000";
+      newLoginBtn.style.borderRadius = "20px";
+      
+
+      // Dropdown menu
+      const dropdown = document.createElement("div");
+      dropdown.className = "login-dropdown";
+      dropdown.style.position = "absolute";
+      dropdown.style.top = "100%";
+      dropdown.style.right = "0";
+      dropdown.style.background = isDark ? "#333" : "#fff";
+      dropdown.style.color = "#000";
+      dropdown.style.border = `1px solid ${isDark ? "#555": "#ccc"}`;
+      dropdown.style.borderRadius = "5px";
+      dropdown.style.boxShadow = "0 2px 2px rgba(0,0,0,0.15)";
+      dropdown.style.padding = "2px 0";
+      dropdown.style.minWidth = "150px";
+      dropdown.style.display = "none";
+      dropdown.style.zIndex = "999";
+
+      // Dark mode toggle
+      // const toggleMode = document.createElement("div");
+      // toggleMode.textContent = "🌓 Toggle";
+      // toggleMode.style.padding = "8px 16px";
+      // toggleMode.style.cursor = "pointer";
+      // toggleMode.addEventListener("click", () => {
+      //   toggleDarkMode();
+      //   dropdown.style.display = "none";
+      // });
+
+      // dropdown.appendChild(toggleMode);
+
+      // Admin link if applicable
+      if (user.isAdmin) {
+        const adminOption = document.createElement("div");
+        adminOption.textContent = "Admin Dash";
+        adminOption.style.padding = "8px 16px";
+        adminOption.style.cursor = "pointer";
+        adminOption.addEventListener("click", () => {
+          window.location.href = "/admin.html";
+        });
+        dropdown.appendChild(adminOption);
+      }
+
+      // Logout
+      const logoutOption = document.createElement("div");
+      logoutOption.textContent = "Logout";
+      logoutOption.style.padding = "8px 16px";
+      logoutOption.style.cursor = "pointer";
+
+
+
+      logoutOption.addEventListener("click", () => {
+          dropdown.style.display = "none";
+          if (confirm("Are you sure you want to logout?")) {
+              isLoggingOut = true;
+
+              localStorage.removeItem("gossipUser");
+              localStorage.removeItem("wasLoggedInBefore");
+              clearCart(); // ✅ Instantly clear the cart UI here
+
+              updateCartBadge()
+              cartItems.innerHTML = ""; // hide cart container immediately
+              cartTotalDisplay.style.display = "";
+              previewBox.textContent = "";
+
+              
+
+
+              fetch("http://127.0.0.1:5001/api/auth/logout", {
+                  method: "POST",
+                  credentials: "include",
+              }).then(res => {
+                  if (!res.ok) throw new Error("Logout failed");
+                  const cleanLogin = document.createElement("button");
+                  cleanLogin.className = "login";
+                  cleanLogin.textContent = "Login";
+                  cleanLogin.addEventListener("click", openLogin);
+                  wrapper.replaceWith(cleanLogin);
+              }).catch(console.error);
+          }
+
+      });
+
+
+      dropdown.appendChild(logoutOption);
+
+      // Toggle dropdown
+      newLoginBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+      });
+
+      document.addEventListener("click", () => {
+        dropdown.style.display = "none";
+      });
+
+      wrapper.appendChild(newLoginBtn);
+      wrapper.appendChild(dropdown);
+      parent.replaceChild(wrapper, loginBtn);
+    } else {
+      // Not logged in: create fresh login button
+      newLoginBtn.textContent = "Login";
+      newLoginBtn.addEventListener("click", openLogin);
+      parent.replaceChild(newLoginBtn, loginBtn);
+    }
+  });
+}
+
+
+
+function checkAuthFromGossip() {
+  if (isLoggingOut) {
+    // console.log("Skipping auth check because we are logging out");
+    return;
+  }
+
+  // Always verify with backend before trusting localStorage
+  fetch("http://127.0.0.1:5001/api/auth/check", {
+    method: "GET",
+    credentials: "include"
+  })
+    .then(res => res.ok ? res.json() : null)
+    .then(data => {
+      if (data && data.fullName) {
+        // Logged in — save user and show cart
+        // normalize: always ensure isAdmin is available
+        data.isAdmin = data.role === "admin";
+
+        localStorage.setItem("wasLoggedInBefore", "true");
+        localStorage.setItem("gossipUser", JSON.stringify(data));
+        updateLoginButton(data);
+        if (!isLoggingOut){
+          loadCartFromDatabase();
+        }
+      } else {
+        // Not logged in — clear stored user and cart
+        localStorage.removeItem("gossipUser");
+        localStorage.removeItem("wasLoggedInBefore");
+        updateLoginButton(null);
+        clearCart();
+      }
+    })
+    .catch(err => {
+      // console.warn("Failed to check gossip session:", err);
+      updateLoginButton(null);
+      clearCart();
+    });
+}
+
+
+
+
+function loadProducts() {
+  const grid = document.getElementById("dynamicProducts");
+  if (!grid) return;
+
+  const products = JSON.parse(localStorage.getItem("products")) || [];
+
+  // if (products.length === 0) {
+  //   grid.innerHTML = "<p>No additional breads yet. Check back later!</p>";
+  //   return;
+  // }
+
+  grid.innerHTML = "";
+
+  products.forEach((product, index) => {
+    const card = document.createElement("div");
+    card.className = "product";
+    card.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" onclick="toggleZoom(this)">
+      <h2>${product.name}</h2>
+      <p>${product.description || ""}</p>
+      <p><strong>RM ${product.price.toFixed(2)}</strong></p>
+
+      <div class="quantity-control">
+        <button type="button" onclick="changeQuantity('qty-dyn-${index}', -1)">−</button>
+        <input type="number" id="qty-dyn-${index}" min="1" max="99" value="0" step="1" />
+        <button type="button" onclick="changeQuantity('qty-dyn-${index}', 1)">+</button>
+      </div>
+
+      <button type="button" onclick="addToCart('${product.name}', document.getElementById('qty-dyn-${index}').value, ${product.price})">Add to Cart</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  // UI setup
+  setMinPickupDate();
+  updateMinusButtons();
+
+  // Data load
+  loadProducts();
+  loadCartFromDatabase();
+
+  // Auth check — skip if we're in the middle of logging out
+  if (!isLoggingOut) {
+    // Give the DOM a moment before checking auth (some UI might depend on it)
+    authCheckInterval = setInterval(
+    setTimeout(() => {
+      checkAuthFromGossip();
+    }), 5000);
+
+    if (authCheckInterval) clearInterval(authCheckInterval)
+  }
+});
+
+
+
+
+
 
 // ❌

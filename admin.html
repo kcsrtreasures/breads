@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard - KCSR Breads atbp</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 1rem;
+      font-family: "Poppins", sans-serif;
+      background-color: #f9f9f9;
+    }
+
+    .admin-container {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      max-width: 2400px;
+      margin: 10px auto;
+      align-items: flex-start;
+    }
+
+    #adminDashboard {
+      position: sticky;
+      top: 1rem;
+      align-self: flex-start;
+      padding: 0.5rem;
+      background: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 480px;
+      border-radius: 10px;
+      box-sizing: border-box;
+    }
+
+    #adminDashboard input,
+    #adminDashboard textarea,
+    #adminDashboard button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #adminDashboard h2,
+    #productSection h3 {
+      text-align: center;
+    }
+
+    .go-home {
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      background-color: #3498db;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      width: 100%;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+
+    #productSection {
+      flex: 1;
+      padding: 1.5rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+
+    #productGrid {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .product-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.5rem;
+      background: #fff;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+      width: 100%;
+      height: fit-content;
+    }
+
+    .product-thumb img {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #f0f0f0;
+      flex-shrink: 0;
+    }
+
+    .product-details {
+      flex: 1 1 200px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .title-price {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.3rem;
+      flex-wrap: wrap;
+    }
+
+    .title-price strong {
+      font-size: 1rem;
+      color: #333;
+      word-break: break-word;
+    }
+
+    .title-price span {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #555;
+    }
+
+    .product-details small {
+      font-size: 0.85rem;
+      color: #777;
+      word-break: break-word;
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .product-actions {
+      flex: 0 0 100%;
+      display: flex;
+      align-items: end;
+      justify-content: flex-end;
+      gap: 5px;
+    }
+
+    .product-actions button {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      margin-top: 0.5rem;
+    }
+
+    /* Responsive Fixes */
+    @media (max-width: 768px) {
+      .admin-container {
+        flex-direction: column;
+      }
+
+      #adminDashboard {
+        position: static;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .product-card {
+        flex-direction: column;
+        align-items: stretch;
+        height: fit-content;
+      }
+
+      .title-price {
+        justify-content: space-between;
+        flex-direction: row;
+      }
+
+      .product-actions {
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Admin Form -->
+    <section id="adminDashboard">
+      <h2>🛠️ Admin Dashboard – Add New Product</h2>
+      <form id="addProductForm">
+        <input type="text" id="productName" placeholder="Product Name" required />
+        <input type="number" id="productPrice" placeholder="Price (RM)" min="1" required />
+        <input type="file" id="productImage" accept="image/*" required />
+        <textarea id="productDescription" placeholder="Description (optional)"></textarea>
+        <button type="submit">➕ Add Product</button>
+        <button type="button" id="cancelEdit" style="display: none;">Cancel Edit</button>
+
+      </form>
+
+      <div style="text-align:center; margin-top:1rem;">
+        <a href="index.html" class="go-home">🏠 Go to Home</a>
+      </div>
+    </section>
+
+    <!-- Product List -->
+    <section id="productSection">
+      <h3>🧺 Current Products</h3>
+      <div id="productGrid"></div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
