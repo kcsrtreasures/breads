@@ -14,12 +14,14 @@ grid.innerHTML = "";
 
 const isDark = document.body.classList.contains("dark")
 
+const API_BASE = "https://gossip-uye2.onrender.com/";
+
 // document.getElementById("cartToggle").addEventListener("click", cartToggle);
 
 function syncCartWithDB() {
   const user = localStorage.getItem("gossipUser");
   if (user) {
-    fetch("http://127.0.0.1:5001/api/cart", {
+    fetch(`${API_BASE}/api/cart`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -103,7 +105,7 @@ async function loadCartFromDatabase() {
   // console.log("loadCartFromDatabase")
   // console.trace()
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/cart", {
+    const res = await fetch(`${API_BASE}/api/cart`, {
       method: "GET",
       credentials: "include" // so cookies/session tokens are sent
     });
@@ -128,7 +130,7 @@ async function loadCartFromDatabase() {
 function saveCartToDatabase() {
   console.log("Sending cart to server:", cart);
   
-  fetch(("http://127.0.0.1:5001/api/cart" || "/api/cart"), {
+  fetch((`${API_BASE}/api/cart` || "/api/cart"), {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
@@ -289,7 +291,7 @@ function addToCart(productName, quantity, price) {
     // 🔹 Save to DB if logged in
   const user = localStorage.getItem("gossipUser");
   if (user) {
-    fetch("http://127.0.0.1:5001/api/cart", "", {
+    fetch(`${API_BASE}/api/cart`, "", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -542,7 +544,7 @@ function updateMinusButtons() {
 let gossipPopup = null;
 
 function openLogin() {
-  const loginUrl = "http://127.0.0.1:5173/login?redirect=http://127.0.0.1:5501/";
+  const loginUrl = `${API_BASE}/login?redirect=https://kcsrtreasures.github.io/breads/`;
   gossipPopup = window.open(loginUrl, "LoginPopup", "width=600,height=600");
 
   // Track popup close — but don't trigger auth unless user is logged in
@@ -557,7 +559,7 @@ function openLogin() {
 
 // Listen for login success messages globally (outside openLogin)
 window.addEventListener("message", function(event) {
-  const allowedOrigin = "http://127.0.0.1:5173";
+  const allowedOrigin = `${API_BASE}`;
   if (event.origin !== allowedOrigin) return;
 
   const { type, user, token } = event.data;
@@ -680,7 +682,7 @@ function updateLoginButton(user = null) {
               
 
 
-              fetch("http://127.0.0.1:5001/api/auth/logout", {
+              fetch(`${API_BASE}/api/auth/logout`, {
                   method: "POST",
                   credentials: "include",
               }).then(res => {
@@ -729,7 +731,7 @@ function checkAuthFromGossip() {
   }
 
   // Always verify with backend before trusting localStorage
-  fetch("http://127.0.0.1:5001/api/auth/check", {
+  fetch(`${API_BASE}/api/auth/check`, {
     method: "GET",
     credentials: "include"
   })
