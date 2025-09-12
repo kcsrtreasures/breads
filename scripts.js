@@ -192,8 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const orderPanel = document.querySelector(".order");
   const cartToggleBtn = document.getElementById("cartToggle");
 
-  if (!orderPanel || !cartToggleBtn) return;
-
+  if (orderPanel && cartToggleBtn) {
     // Initial state — show cart only on desktop
     if (window.innerWidth >= 768) {
       orderPanel.classList.add("open");
@@ -205,18 +204,19 @@ document.addEventListener("DOMContentLoaded", () => {
     cartToggleBtn.addEventListener("click", () => {
       orderPanel.classList.toggle("open");
     });
+  }
+
+  // 🔑 Run this immediately on load
+  checkAuthFromGossip();
 });
 
-
-
-
-
-// 👇 Add this below to refresh login button when user switches back to tab
+// 👇 Refresh login state when user comes back to tab
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     checkAuthFromGossip();
   }
 });
+
 
 window.addEventListener("focus", () => {
   // checkAuthFromGossip();
