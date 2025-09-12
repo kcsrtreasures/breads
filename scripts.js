@@ -835,6 +835,12 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// Sync logout across tabs
+window.addEventListener("storage", (event) => {
+  if (event.key === "gossipUser" && !event.newValue) {
+    updateLoginButton(null);
+  }
+});
 
 
 
