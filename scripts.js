@@ -835,12 +835,13 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// Sync logout across tabs
 window.addEventListener("storage", (event) => {
-  if (event.key === "gossipUser" && !event.newValue) {
-    updateLoginButton(null);
+  if (event.key === "gossipUser") {
+    const user = event.newValue ? JSON.parse(event.newValue) : null;
+    updateLoginButton(user); // updates UI for login or logout
   }
 });
+
 
 
 
