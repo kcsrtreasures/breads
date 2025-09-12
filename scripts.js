@@ -16,7 +16,7 @@ const isDark = document.body.classList.contains("dark")
 
 const API_BASE = "https://gossip-uye2.onrender.com";
 
-const FRONT_BASE = "https://kcsrtreasures.github.io/breads"
+const FRONT_BASE = window.location.origin
 
 // document.getElementById("cartToggle").addEventListener("click", cartToggle);
 
