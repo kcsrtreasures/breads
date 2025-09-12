@@ -194,17 +194,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!orderPanel || !cartToggleBtn) return;
 
-  // Initial state — show cart only on desktop
-  if (window.innerWidth >= 768) {
-    orderPanel.classList.add("open");
-  } else {
-    orderPanel.classList.remove("open");
-  }
+    // Initial state — show cart only on desktop
+    if (window.innerWidth >= 768) {
+      orderPanel.classList.add("open");
+    } else {
+      orderPanel.classList.remove("open");
+    }
 
-  // Cart toggle works on both desktop and mobile
-  cartToggleBtn.addEventListener("click", () => {
-    orderPanel.classList.toggle("open");
-  });
+    // Cart toggle works on both desktop and mobile
+    cartToggleBtn.addEventListener("click", () => {
+      orderPanel.classList.toggle("open");
+    });
 });
 
 
@@ -214,7 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // 👇 Add this below to refresh login button when user switches back to tab
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
-    // checkAuthFromGossip();
+    checkAuthFromGossip();
   }
 });
 
