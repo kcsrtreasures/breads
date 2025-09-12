@@ -14,7 +14,9 @@ grid.innerHTML = "";
 
 const isDark = document.body.classList.contains("dark")
 
-const API_BASE = "https://gossip-uye2.onrender.com/";
+const API_BASE = "https://gossip-uye2.onrender.com";
+
+const FRONT_BASE = "https://kcsrtreasures.github.io/breads"
 
 // document.getElementById("cartToggle").addEventListener("click", cartToggle);
 
@@ -544,8 +546,8 @@ function updateMinusButtons() {
 let gossipPopup = null;
 
 function openLogin() {
-  const loginUrl = `${API_BASE}/login?redirect=https://kcsrtreasures.github.io/breads/`;
-  gossipPopup = window.open(loginUrl, "LoginPopup", "width=600,height=600");
+  const loginUrl = `${API_BASE}/login?redirect=${FRONT_BASE}`;
+  gossipPopup = window.open(loginUrl, "LoginPopup", "width=400,height=600");
 
   // Track popup close — but don't trigger auth unless user is logged in
   const closeCheck = setInterval(() => {
@@ -652,7 +654,7 @@ function updateLoginButton(user = null) {
         adminOption.style.padding = "8px 16px";
         adminOption.style.cursor = "pointer";
         adminOption.addEventListener("click", () => {
-          window.location.href = "/admin.html";
+          window.location.href = "./admin.html";
         });
         dropdown.appendChild(adminOption);
       }
