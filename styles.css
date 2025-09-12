@@ -868,15 +868,19 @@ footer {
 .cart-badge {
   position: absolute;
   top: -3px;
-  right: -8px;
-  background-color: rgb(238, 81, 81);
+  right: -10px;
+  background-color: #3498db; /* medium blue */
   color: white;
+
   font-size: 0.5rem;
   padding: 1px 4px;
   border-radius: 50%;
   font-weight: bold;
   z-index: 10;
+
+  border: 2px solid white; /* add a white border */
 }
+
 
 /* Ensure wrappers are positioned correctly */
 .cart-icon-wrapper {

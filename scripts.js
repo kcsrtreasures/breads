@@ -542,49 +542,62 @@ function updateMinusButtons() {
   });
 }
 
-
 let gossipPopup = null;
+let isLoggingOut = false; // to prevent conflicts
 
 function openLogin() {
-  const loginUrl = `${API_BASE}/login?redirect=${FRONT_BASE}`;
+  const loginUrl = `${API_BASE}/login?redirect=${encodeURIComponent(FRONT_BASE)}`;
   gossipPopup = window.open(loginUrl, "LoginPopup", "width=400,height=600");
 
-  // Track popup close — but don't trigger auth unless user is logged in
+  // Track popup close — only for debugging / cleanup
   const closeCheck = setInterval(() => {
     if (gossipPopup && gossipPopup.closed) {
       clearInterval(closeCheck);
-      console.log("Popup closed by user");
-      // No auth check here — let LOGIN_SUCCESS handle it
+      console.log("Login popup closed by user.");
+      // We don’t trigger login here — LOGIN_SUCCESS will handle it
     }
   }, 500);
 }
 
-// Listen for login success messages globally (outside openLogin)
-window.addEventListener("message", function(event) {
-  const allowedOrigin = `${API_BASE}`;
-  if (event.origin !== allowedOrigin) return;
+// Listen globally for login messages
+window.addEventListener("message", function (event) {
+  const allowedOrigin = API_BASE; // must match Gossip backend origin exactly (no trailing slash)
+
+  if (event.origin !== allowedOrigin) {
+    console.warn("Blocked message from untrusted origin:", event.origin);
+    return;
+  }
 
   const { type, user, token } = event.data;
 
   if (type === "LOGIN_SUCCESS") {
-    localStorage.setItem("gossipUser", JSON.stringify(user));
-    // console.log("User logged in:", user);
+    if (!user || !token) {
+      console.error("Login message missing user or token:", event.data);
+      return;
+    }
 
-    // Allow auth checks again after login
+    // Save user + token in localStorage
+    localStorage.setItem("gossipUser", JSON.stringify(user));
+    localStorage.setItem("gossipToken", token);
+
+    console.log("User logged in:", user);
+
     isLoggingOut = false;
 
     // Update UI
     updateLoginButton(user);
 
-    // Load cart after login
-    loadCartFromDatabase();
+    // Load cart after login (optional)
+    if (typeof loadCartFromDatabase === "function") {
+      loadCartFromDatabase();
+    }
 
     // If login came from popup, close it
     if (gossipPopup && !gossipPopup.closed) {
       gossipPopup.close();
     }
 
-    // Sync with opener if this is in a popup
+    // If this is inside a popup, sync with parent
     if (window.opener) {
       window.opener.postMessage({ type: "LOGIN_SYNC" }, "*");
     }
@@ -593,7 +606,6 @@ window.addEventListener("message", function(event) {
 
 
 
-      let isLoggingOut = false;
 function updateLoginButton(user = null) {
   const loginBtns = document.querySelectorAll(".login");
   loginBtns.forEach((loginBtn) => {
