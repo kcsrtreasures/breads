@@ -468,6 +468,7 @@ function validateAndSend(method) {
       "noopener"
     );
 
+    
   } else if (method === "wa") {
     window.open(`https://wa.me/601136003291?text=${encodeURIComponent(message)}`, "_blank");
   }
