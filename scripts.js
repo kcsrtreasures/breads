@@ -461,19 +461,13 @@ function validateAndSend(method) {
   const message = buildMessage();
 
   if (method === "fb") {
-  const encoded = encodeURIComponent(message);
-  window.open(
-    `https://m.me/kcsrtreasureslimited?text=${encoded}`,
-    "_blank",
-    "noopener"
-  );
-  // if (method === "fb") {
-  //   navigator.clipboard.writeText(message).then(() => {
-  //     showToast();
-  //     window.open(`https://m.me/kcsrtreasureslimited`, "_blank");
-  //   }).catch(() => {
-  //     alert("Failed to copy message.");
-  //   });
+    const encoded = encodeURIComponent(message);
+    window.open(
+      `https://m.me/kcsrtreasureslimited?text=${encoded}`,
+      "_blank",
+      "noopener"
+    );
+
   } else if (method === "wa") {
     window.open(`https://wa.me/601136003291?text=${encodeURIComponent(message)}`, "_blank");
   }
