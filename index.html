@@ -166,12 +166,39 @@
       <ul id="printItems"></ul>
       <p><strong>Total:</strong> RM <span id="printTotal"></span></p>
     </div>
+    <!-- Facebook Chat Plugin -->
+<div id="fb-root">FACEBOOK</div>
+
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      xfbml: true,
+      version: 'v21.0'   // or the latest version Facebook shows you
+    });
+  };
+
+  (function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk/xfbml.customerchat.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
+<div class="fb-customerchat"
+     attribution="biz_inbox"
+     page_id="1262065820966297"
+     minimized="false">
+</div>
 
 </div>
 
 
 <!-- <button type="button" onclick="printOrderSummary()">🖨️ Print Order</button> -->
 </div>
+
+
 </main>
   <footer>
     &copy; 2025 KCSR Breads atbp. All rights reserved.
