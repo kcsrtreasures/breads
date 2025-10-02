@@ -513,7 +513,7 @@ form textarea {
 /* Mobile tweak: move toast to bottom center */
 @media (max-width: 480px) {
   .toast {
-    left: 25%;
+    left: 50%;
     right: auto;
     transform: translateX(-25%);
     bottom: 2rem;
