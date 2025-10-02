@@ -515,7 +515,7 @@ form textarea {
   .toast {
     left: 50%;
     right: auto;
-    transform: translateX(-25%);
+    transform: translateX(-50%);
     bottom: 2rem;
   }
 }
