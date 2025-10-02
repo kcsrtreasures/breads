@@ -496,8 +496,10 @@ form textarea {
 
 .toast {
   position: fixed;
-  bottom: 2rem;
-  right: 1rem;
+  top: 4rem;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   background-color: #333;
   color: white;
   padding: 0.25rem 0.5rem;
