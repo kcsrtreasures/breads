@@ -279,10 +279,10 @@ function addToCart(productName, quantity, price) {
   const existingItem = cart.find(item => item.product === productName);
   if (existingItem) {
     existingItem.quantity += qty;
-    showToast(`Updated quantity of ${productName}`)
+    showToast(`Updated quantity`)
   } else {
     cart.push({ product: productName, quantity: qty, price: price });
-    showToast(`${productName} added to cart!`)
+    showToast(`Added to cart!`)
   }
 
   updateCartDisplay();
