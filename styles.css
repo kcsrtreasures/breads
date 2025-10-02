@@ -507,7 +507,6 @@ form textarea {
   z-index: 1000;
   max-width: 90%;
   text-align: center;
-  font-size: x-small;
 }
 
 /* Mobile tweak: move toast to bottom center */
@@ -517,6 +516,8 @@ form textarea {
     right: auto;
     transform: translateX(-50%);
     bottom: 2rem;
+    font-size: x-small;
+
   }
 }
 
