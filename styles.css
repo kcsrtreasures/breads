@@ -497,7 +497,7 @@ form textarea {
 .toast {
   position: fixed;
   bottom: 2rem;
-  right: 1rem;
+  right: 0.25rem;
   background-color: #333;
   color: white;
   padding: 0.25rem 0.5rem;
