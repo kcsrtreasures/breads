@@ -497,7 +497,7 @@ form textarea {
 .toast {
   position: fixed;
   bottom: 2rem;
-  right: 0.25rem;
+  right: 1rem;
   background-color: #333;
   color: white;
   padding: 0.25rem 0.5rem;
@@ -513,9 +513,9 @@ form textarea {
 /* Mobile tweak: move toast to bottom center */
 @media (max-width: 480px) {
   .toast {
-    left: 50%;
+    left: 25%;
     right: auto;
-    transform: translateX(-50%);
+    transform: translateX(-25%);
     bottom: 2rem;
   }
 }
