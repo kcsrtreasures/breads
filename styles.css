@@ -503,10 +503,12 @@ form textarea {
   padding: 0.25rem 0.5rem;
   border-radius: 8px;
   opacity: 0;
-  transition: opacity 0.6s ease-in-out;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.4s ease;
   z-index: 1000;
   max-width: 90%;
   text-align: center;
+  pointer-events: none;
   font-size: small;
 }
 
@@ -515,13 +517,14 @@ form textarea {
   .toast {
     left: 50%;
     right: auto;
-    transform: translateX(-50%);
+    transform: translateX(-50%, 20px);
     bottom: 2rem;
   }
 }
 
 .toast.show {
   opacity: 1;
+  transform: translateY(0);
 }
 
 
