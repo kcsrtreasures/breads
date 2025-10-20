@@ -217,6 +217,20 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get("token");
+  const userData = params.get("user");
+
+  if (token && userData) {
+    localStorage.setItem("gossipToken", token);
+    localStorage.setItem("gossipUser", userData);
+    history.replaceState({}, document.title, window.location.pathname); // clean URL
+    location.reload(); // refresh to update UI
+  }
+});
+
+
 
 window.addEventListener("focus", () => {
   // checkAuthFromGossip();
