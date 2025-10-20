@@ -744,7 +744,7 @@ function updateLoginButton(user = null) {
                   if (!res.ok) throw new Error("Logout failed");
                   const cleanLogin = document.createElement("button");
                   cleanLogin.className = "login";
-                  cleanLogin.textContent = "Login";
+                  cleanLogin.textContent = "Login via Gossip";
                   cleanLogin.addEventListener("click", openLogin);
                   wrapper.replaceWith(cleanLogin);
               }).catch(console.error);
