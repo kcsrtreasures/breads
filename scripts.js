@@ -610,30 +610,156 @@ window.addEventListener("message", function (event) {
 
 
 
+// function updateLoginButton(user = null) {
+//   const loginBtns = document.querySelectorAll(".login");
+//   loginBtns.forEach((loginBtn) => {
+//     const parent = loginBtn.parentNode;
+
+//     // Create a clean button clone (removes old event listeners)
+//     const newLoginBtn = loginBtn.cloneNode(true);
+
+//     if (user) {
+//       const name = user.fullName.split(" ")[0];
+
+//       // Create wrapper to hold button and dropdown
+//       const wrapper = document.createElement("div");
+//       wrapper.style.position = "relative";
+//       wrapper.style.display = "inline-block";
+
+//       // Update button appearance
+//       newLoginBtn.textContent = `👋 Hi! ${name}`;
+//       newLoginBtn.title = "";
+//       newLoginBtn.style.cursor = "pointer";
+//       // newLoginBtn.style.background = isDark ? "#333" : "#fff";
+//       newLoginBtn.style.color = isDark ? "#fff" : "#000";
+//       newLoginBtn.style.borderRadius = "20px";
+      
+
+//       // Dropdown menu
+//       const dropdown = document.createElement("div");
+//       dropdown.className = "login-dropdown";
+//       dropdown.style.position = "absolute";
+//       dropdown.style.top = "100%";
+//       dropdown.style.right = "0";
+//       dropdown.style.background = isDark ? "#333" : "#fff";
+//       dropdown.style.color = "#000";
+//       dropdown.style.border = `1px solid ${isDark ? "#555": "#ccc"}`;
+//       dropdown.style.borderRadius = "5px";
+//       dropdown.style.boxShadow = "0 2px 2px rgba(0,0,0,0.15)";
+//       dropdown.style.padding = "2px 0";
+//       dropdown.style.minWidth = "150px";
+//       dropdown.style.display = "none";
+//       dropdown.style.zIndex = "999";
+
+//       // Dark mode toggle
+//       // const toggleMode = document.createElement("div");
+//       // toggleMode.textContent = "🌓 Toggle";
+//       // toggleMode.style.padding = "8px 16px";
+//       // toggleMode.style.cursor = "pointer";
+//       // toggleMode.addEventListener("click", () => {
+//       //   toggleDarkMode();
+//       //   dropdown.style.display = "none";
+//       // });
+
+//       // dropdown.appendChild(toggleMode);
+
+//       // Admin link if applicable
+//       if (user.isAdmin) {
+//         const adminOption = document.createElement("div");
+//         adminOption.textContent = "Admin Dash";
+//         adminOption.style.padding = "8px 16px";
+//         adminOption.style.cursor = "pointer";
+//         adminOption.addEventListener("click", () => {
+//           window.location.href = "./admin.html";
+//         });
+//         dropdown.appendChild(adminOption);
+//       }
+
+//       // Logout
+//       const logoutOption = document.createElement("div");
+//       logoutOption.textContent = "Logout";
+//       logoutOption.style.padding = "8px 16px";
+//       logoutOption.style.cursor = "pointer";
+
+
+
+//       logoutOption.addEventListener("click", () => {
+//           dropdown.style.display = "none";
+//           if (confirm("Are you sure you want to logout?")) {
+//               isLoggingOut = true;
+
+//               localStorage.removeItem("gossipUser");
+//               localStorage.removeItem("wasLoggedInBefore");
+//               clearCart(); // ✅ Instantly clear the cart UI here
+
+//               updateCartBadge()
+//               cartItems.innerHTML = ""; // hide cart container immediately
+//               cartTotalDisplay.style.display = "";
+//               previewBox.textContent = "";
+
+              
+
+
+//               fetch(`${API_BASE}/api/auth/logout`, {
+//                   method: "POST",
+//                   credentials: "include",
+//               }).then(res => {
+//                   if (!res.ok) throw new Error("Logout failed");
+//                   const cleanLogin = document.createElement("button");
+//                   cleanLogin.className = "login";
+//                   cleanLogin.textContent = "Login";
+//                   cleanLogin.addEventListener("click", openLogin);
+//                   wrapper.replaceWith(cleanLogin);
+//               }).catch(console.error);
+//           }
+
+//       });
+
+
+//       dropdown.appendChild(logoutOption);
+
+//       // Toggle dropdown
+//       newLoginBtn.addEventListener("click", (e) => {
+//         e.stopPropagation();
+//         dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+//       });
+
+//       document.addEventListener("click", () => {
+//         dropdown.style.display = "none";
+//       });
+
+//       wrapper.appendChild(newLoginBtn);
+//       wrapper.appendChild(dropdown);
+//       parent.replaceChild(wrapper, loginBtn);
+//     } else {
+//       // Not logged in: create fresh login button
+//       newLoginBtn.textContent = "Login";
+//       newLoginBtn.addEventListener("click", openLogin);
+//       parent.replaceChild(newLoginBtn, loginBtn);
+//     }
+//   });
+// }
+
 function updateLoginButton(user = null) {
   const loginBtns = document.querySelectorAll(".login");
+
   loginBtns.forEach((loginBtn) => {
     const parent = loginBtn.parentNode;
-
-    // Create a clean button clone (removes old event listeners)
-    const newLoginBtn = loginBtn.cloneNode(true);
+    const newLoginBtn = loginBtn.cloneNode(true); // fresh copy (no old listeners)
 
     if (user) {
-      const name = user.fullName.split(" ")[0];
+      const name = user.fullName?.split(" ")[0] || "User";
 
-      // Create wrapper to hold button and dropdown
+      // Wrapper to hold button and dropdown
       const wrapper = document.createElement("div");
       wrapper.style.position = "relative";
       wrapper.style.display = "inline-block";
 
-      // Update button appearance
+      // Update button for logged-in state
       newLoginBtn.textContent = `👋 Hi! ${name}`;
-      newLoginBtn.title = "";
       newLoginBtn.style.cursor = "pointer";
-      // newLoginBtn.style.background = isDark ? "#333" : "#fff";
-      newLoginBtn.style.color = isDark ? "#fff" : "#000";
       newLoginBtn.style.borderRadius = "20px";
-      
+      newLoginBtn.style.color = isDark ? "#fff" : "#000";
 
       // Dropdown menu
       const dropdown = document.createElement("div");
@@ -642,8 +768,7 @@ function updateLoginButton(user = null) {
       dropdown.style.top = "100%";
       dropdown.style.right = "0";
       dropdown.style.background = isDark ? "#333" : "#fff";
-      dropdown.style.color = "#000";
-      dropdown.style.border = `1px solid ${isDark ? "#555": "#ccc"}`;
+      dropdown.style.border = `1px solid ${isDark ? "#555" : "#ccc"}`;
       dropdown.style.borderRadius = "5px";
       dropdown.style.boxShadow = "0 2px 2px rgba(0,0,0,0.15)";
       dropdown.style.padding = "2px 0";
@@ -651,19 +776,7 @@ function updateLoginButton(user = null) {
       dropdown.style.display = "none";
       dropdown.style.zIndex = "999";
 
-      // Dark mode toggle
-      // const toggleMode = document.createElement("div");
-      // toggleMode.textContent = "🌓 Toggle";
-      // toggleMode.style.padding = "8px 16px";
-      // toggleMode.style.cursor = "pointer";
-      // toggleMode.addEventListener("click", () => {
-      //   toggleDarkMode();
-      //   dropdown.style.display = "none";
-      // });
-
-      // dropdown.appendChild(toggleMode);
-
-      // Admin link if applicable
+      // Admin option
       if (user.isAdmin) {
         const adminOption = document.createElement("div");
         adminOption.textContent = "Admin Dash";
@@ -675,53 +788,47 @@ function updateLoginButton(user = null) {
         dropdown.appendChild(adminOption);
       }
 
-      // Logout
+      // Logout option
       const logoutOption = document.createElement("div");
       logoutOption.textContent = "Logout";
       logoutOption.style.padding = "8px 16px";
       logoutOption.style.cursor = "pointer";
-
-
-
       logoutOption.addEventListener("click", () => {
-          dropdown.style.display = "none";
-          if (confirm("Are you sure you want to logout?")) {
-              isLoggingOut = true;
+        dropdown.style.display = "none";
+        if (confirm("Are you sure you want to logout?")) {
+          isLoggingOut = true;
 
-              localStorage.removeItem("gossipUser");
-              localStorage.removeItem("wasLoggedInBefore");
-              clearCart(); // ✅ Instantly clear the cart UI here
+          localStorage.removeItem("gossipUser");
+          localStorage.removeItem("wasLoggedInBefore");
+          clearCart();
+          updateCartBadge();
+          cartItems.innerHTML = "";
+          cartTotalDisplay.style.display = "";
+          previewBox.textContent = "";
 
-              updateCartBadge()
-              cartItems.innerHTML = ""; // hide cart container immediately
-              cartTotalDisplay.style.display = "";
-              previewBox.textContent = "";
-
-              
-
-
-              fetch(`${API_BASE}/api/auth/logout`, {
-                  method: "POST",
-                  credentials: "include",
-              }).then(res => {
-                  if (!res.ok) throw new Error("Logout failed");
-                  const cleanLogin = document.createElement("button");
-                  cleanLogin.className = "login";
-                  cleanLogin.textContent = "Login";
-                  cleanLogin.addEventListener("click", openLogin);
-                  wrapper.replaceWith(cleanLogin);
-              }).catch(console.error);
-          }
-
+          fetch(`${API_BASE}/api/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+          })
+            .then((res) => {
+              if (!res.ok) throw new Error("Logout failed");
+              const cleanLogin = document.createElement("button");
+              cleanLogin.className = "login";
+              cleanLogin.textContent = "Login";
+              cleanLogin.addEventListener("click", openLogin);
+              wrapper.replaceWith(cleanLogin);
+            })
+            .catch(console.error);
+        }
       });
-
 
       dropdown.appendChild(logoutOption);
 
-      // Toggle dropdown
+      // Toggle dropdown visibility
       newLoginBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+        dropdown.style.display =
+          dropdown.style.display === "block" ? "none" : "block";
       });
 
       document.addEventListener("click", () => {
@@ -732,9 +839,31 @@ function updateLoginButton(user = null) {
       wrapper.appendChild(dropdown);
       parent.replaceChild(wrapper, loginBtn);
     } else {
-      // Not logged in: create fresh login button
+      // Not logged in
       newLoginBtn.textContent = "Login";
-      newLoginBtn.addEventListener("click", openLogin);
+      newLoginBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (newLoginBtn.disabled) return; // Prevent spam clicks
+
+        // Show spinner + text
+        newLoginBtn.disabled = true;
+        const originalHTML = newLoginBtn.innerHTML;
+        newLoginBtn.innerHTML = `
+          <span class="spinner"></span> Logging in...
+        `;
+
+        try {
+          await openLogin(); // your existing Gossip login function
+        } catch (err) {
+          console.error("Login failed:", err);
+          alert("Login failed. Please try again.");
+        } finally {
+          // Restore button
+          newLoginBtn.disabled = false;
+          newLoginBtn.innerHTML = originalHTML;
+        }
+      });
+
       parent.replaceChild(newLoginBtn, loginBtn);
     }
   });
