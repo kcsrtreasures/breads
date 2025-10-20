@@ -564,7 +564,7 @@ let isLoggingOut = false; // to prevent conflicts
 // }
 
 function openLogin() {
-  const loginUrl = `${API_BASE}/login?redirect=${encodeURIComponent(FRONT_BASE)}`;
+  const loginUrl = `${API_BASE}/?redirect=${encodeURIComponent(FRONT_BASE)}`;
 
   const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 
