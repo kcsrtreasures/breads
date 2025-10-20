@@ -744,7 +744,12 @@ function updateLoginButton(user = null) {
                   if (!res.ok) throw new Error("Logout failed");
                   const cleanLogin = document.createElement("button");
                   cleanLogin.className = "login";
-                  cleanLogin.textContent = "Login via Gossip";
+                  cleanLogin.innerHTML = `
+  <img src="Bigger logo.png" alt="Gossip Logo" style="height: 22px; vertical-align: middle; margin-right: 6px;">
+  Login via Gossip
+`;
+
+                  // cleanLogin.textContent = "Login via Gossip";
                   cleanLogin.addEventListener("click", openLogin);
                   wrapper.replaceWith(cleanLogin);
               }).catch(console.error);
@@ -770,7 +775,9 @@ function updateLoginButton(user = null) {
       parent.replaceChild(wrapper, loginBtn);
     } else {
       // Not logged in: create fresh login button
-      newLoginBtn.textContent = "Login via Gossip";
+      newLoginBtn.innerHTML = '<img src="Bigger logo.png" alt="Login via Gossip" style="height: 24px; vertical-align: middle;">';
+
+      // newLoginBtn.textContent = "Login via Gossip";
       newLoginBtn.addEventListener("click", openLogin);
       parent.replaceChild(newLoginBtn, loginBtn);
     }
