@@ -550,7 +550,7 @@ let gossipPopup = null;
 let isLoggingOut = false; // to prevent conflicts
 
 function openLogin() {
-  const loginUrl = `${API_BASE}/login?redirect=${encodeURIComponent(FRONT_BASE)}`;
+  const loginUrl = `${API_BASE}/?redirect=${encodeURIComponent(FRONT_BASE)}`;
   gossipPopup = window.open(loginUrl, "LoginPopup", "width=400,height=600");
 
   // Track popup close — only for debugging / cleanup
