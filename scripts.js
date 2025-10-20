@@ -770,7 +770,7 @@ function updateLoginButton(user = null) {
       parent.replaceChild(wrapper, loginBtn);
     } else {
       // Not logged in: create fresh login button
-      newLoginBtn.textContent = "Login";
+      newLoginBtn.textContent = "Login via Gossip";
       newLoginBtn.addEventListener("click", openLogin);
       parent.replaceChild(newLoginBtn, loginBtn);
     }
