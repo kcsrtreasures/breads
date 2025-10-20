@@ -549,19 +549,42 @@ function updateMinusButtons() {
 let gossipPopup = null;
 let isLoggingOut = false; // to prevent conflicts
 
-function openLogin() {
-  const loginUrl = `${API_BASE}/?redirect=${encodeURIComponent(FRONT_BASE)}`;
-  gossipPopup = window.open(loginUrl, "LoginPopup", "width=400,height=600");
+// function openLogin() {
+//   const loginUrl = `${API_BASE}/?redirect=${encodeURIComponent(FRONT_BASE)}`;
+//   gossipPopup = window.open(loginUrl, "LoginPopup", "width=400,height=600");
 
-  // Track popup close — only for debugging / cleanup
-  const closeCheck = setInterval(() => {
-    if (gossipPopup && gossipPopup.closed) {
-      clearInterval(closeCheck);
-      console.log("Login popup closed by user.");
-      // We don’t trigger login here — LOGIN_SUCCESS will handle it
-    }
-  }, 500);
+//   // Track popup close — only for debugging / cleanup
+//   const closeCheck = setInterval(() => {
+//     if (gossipPopup && gossipPopup.closed) {
+//       clearInterval(closeCheck);
+//       console.log("Login popup closed by user.");
+//       // We don’t trigger login here — LOGIN_SUCCESS will handle it
+//     }
+//   }, 500);
+// }
+
+function openLogin() {
+  const loginUrl = `${API_BASE}/login?redirect=${encodeURIComponent(FRONT_BASE)}`;
+
+  const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    // Mobile: open in same tab for reliability
+    window.location.href = loginUrl;
+  } else {
+    // Desktop: open in popup
+    gossipPopup = window.open(loginUrl, "LoginPopup", "width=400,height=600");
+
+    // Track popup close (optional)
+    const closeCheck = setInterval(() => {
+      if (gossipPopup && gossipPopup.closed) {
+        clearInterval(closeCheck);
+        console.log("Login popup closed by user.");
+      }
+    }, 500);
+  }
 }
+
 
 // Listen globally for login messages
 window.addEventListener("message", function (event) {
