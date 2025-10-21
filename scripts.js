@@ -2199,7 +2199,7 @@ function updateLoginButton(user = null) {
  </g>
 </svg>
   // <img src="Bigger logo.png" alt="Gossip Logo" style="height: 22px; vertical-align: middle; margin-right: 6px;">
-  Login via Gossip
+  
 `;
 
                   // cleanLogin.textContent = "Login via Gossip";
