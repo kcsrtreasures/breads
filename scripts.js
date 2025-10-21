@@ -745,7 +745,7 @@ function updateLoginButton(user = null) {
                   const cleanLogin = document.createElement("button");
                   cleanLogin.className = "login";
                   cleanLogin.innerHTML = `
-  <img src="Bigger logo.png" alt="Gossip Logo" style="height: 22px; vertical-align: middle; margin-right: 6px;">
+  // <img src="Bigger logo.png" alt="Gossip Logo" style="height: 22px; vertical-align: middle; margin-right: 6px;">
   Login via Gossip
 `;
 
@@ -775,7 +775,7 @@ function updateLoginButton(user = null) {
       parent.replaceChild(wrapper, loginBtn);
     } else {
       // Not logged in: create fresh login button
-      newLoginBtn.innerHTML = '<img src="Bigger logo.png" alt="Login via Gossip" style="height: 24px; vertical-align: middle;">';
+      newLoginBtn.innerHTML = '';
 
       // newLoginBtn.textContent = "Login via Gossip";
       newLoginBtn.addEventListener("click", openLogin);
