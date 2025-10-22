@@ -22,6 +22,7 @@
       <nav class="links">
         <a href="./index.html">Home</a>
         <a href="./about.html">About Us</a>
+        <a href="./timer.html">My Baking Timer</a>
 
       </nav>
 
@@ -208,10 +209,12 @@
     <path d="M10 21v-6h4v6"></path>
   </svg>
   <span style="font-size: 0.5em;">Home</span>
-</span>
+  </span>
 
       
-    </span>  </a>
+  </span>
+  </a>
+
   </button>
   <button class="nav-btn">
     <i class="fas fa-info-circle"></i>
@@ -248,6 +251,54 @@
 
     </span> </a>
   </button>
+
+  <button class="nav-btn">
+    <i class="fas fa-info-circle"></i>
+    <a href="./timer.html">
+<span>
+
+<span style="display: inline-flex; flex-direction: column; align-items: center;">
+<svg
+  class="icon timer-icon"
+  stroke="currentColor"
+  fill="none"
+  stroke-width="2"
+  viewBox="0 0 24 24"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  height="1em"
+  width="1em"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <!-- outer circle -->
+  <circle cx="12" cy="12" r="10"></circle>
+
+  <!-- top knob -->
+  <rect x="11" y="1.5" width="2" height="3" rx="0.9" fill="currentColor" stroke="none"></rect>
+
+  <!-- center pin -->
+  <circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+
+  <!-- hour hand (short) -->
+  <line x1="12" y1="12" x2="12" y2="8.5"></line>
+
+  <!-- minute hand (longer) -->
+  <line x1="12" y1="12" x2="16.2" y2="9"></line>
+
+  <!-- cardinal tick marks -->
+  <line x1="12" y1="3.5" x2="12" y2="5"></line>
+  <line x1="12" y1="19" x2="12" y2="20.5"></line>
+  <line x1="3.5" y1="12" x2="5" y2="12"></line>
+  <line x1="19" y1="12" x2="20.5" y2="12"></line>
+</svg>
+
+  <span style="font-size: 0.5em; color: black;">Timer</span>
+</span>
+
+
+    </span> </a>
+  </button>
+
   <div class="cart-icon-wrapper">
   <button class="nav-btn" onclick="cartToggle()">
     <i class="fas fa-cart"></i>

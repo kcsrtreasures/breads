@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>About Us - KCSR Breads atbp</title>
+  <title>About Us</title>
   <link rel="icon" type="image/png" href="breadroll.png"/>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -17,7 +17,7 @@
       color: #2e2e2e;
     }
 
-    /* NAVBAR */
+    /* NAVBAR (MATCHED TO TIMER.HTML) */
     header {
       background: linear-gradient(90deg, #e6d5c3, #c9a574);
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
@@ -29,17 +29,17 @@
       justify-content: space-between;
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0rem 2rem;
-
+      padding: 0.4rem 1.5rem;
     }
 
     .navbar .logo img {
-      height: 50px;
+      height: 45px;
     }
 
     .navbar .links {
       display: flex;
-      gap: 3.5rem;
+      gap: 2rem;
+      flex-wrap: wrap;
     }
 
     .navbar .links a {
@@ -49,6 +49,7 @@
       color: #2e2e2e;
       padding-bottom: 2px;
       transition: color 0.3s;
+      font-size: 1rem;
     }
 
     .navbar .links a::after {
@@ -72,7 +73,7 @@
     }
 
     .navbar .actions .btn {
-      padding: 0.5rem 1.2rem;
+      padding: 0.4rem 1rem;
       background: linear-gradient(90deg, #6b4b2c, #4a3320);
       color: #fff;
       font-weight: 600;
@@ -96,8 +97,8 @@
       position: relative;
       padding: 2rem;
       background: url('creamcheese.jpg') center/cover no-repeat;
-      overflow: auto; /* enable scrolling */
-      display: block;  /* allow natural flow */
+      overflow: auto;
+      display: block;
     }
 
     main::before {
@@ -106,31 +107,30 @@
       inset: 0;
       background: linear-gradient(
         to bottom,
-        rgba(255, 248, 240, 1) 0%,   /* fully opaque at top */
-        rgba(255, 248, 240, 0.85) 20%, 
-        rgba(255, 248, 240, 0.7) 40%, 
-        rgba(255, 248, 240, 0.5) 60%, 
-        rgba(255, 248, 240, 0.3) 80%, 
-        rgba(255, 248, 240, 0) 100%   /* transparent at bottom */
+        rgba(255, 248, 240, 1) 0%,
+        rgba(255, 248, 240, 0.85) 20%,
+        rgba(255, 248, 240, 0.7) 40%,
+        rgba(255, 248, 240, 0.5) 60%,
+        rgba(255, 248, 240, 0.3) 80%,
+        rgba(255, 248, 240, 0) 100%
       );
       pointer-events: none;
       z-index: 0;
     }
 
-
     .about-container {
       position: relative;
       z-index: 1;
       max-width: 900px;
-      margin: 2rem auto;       /* add vertical spacing from top */
+      margin: 2rem auto;
       padding: 2rem;
-      background: rgba(255, 255, 255, 0.85); /* slightly more transparent */
+      background: rgba(255, 255, 255, 0.85);
       border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.08); /* softer shadow */
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
       line-height: 1.8;
       text-align: center;
       animation: fadeIn 0.8s ease;
-      backdrop-filter: blur(6px); /* subtle glass effect */
+      backdrop-filter: blur(6px);
     }
 
     .about-container h1 {
@@ -150,23 +150,27 @@
       text-align: center;
       background: linear-gradient(90deg, #e6d5c3, #c9a574);
       color: #2e2e2e;
-      padding: 0rem 0;
+      padding: 0.5rem 0;
       font-size: 0.75rem;
       margin-top: auto;
     }
 
-    /* MOBILE NAV */
+    /* MOBILE NAV (floating button) */
     .mobile-nav {
       display: none;
     }
 
     @media (max-width: 768px) {
-      /* Hide Shop Now button in navbar on mobile */
+      .navbar .links {
+        gap: 1.5rem;
+      }
+      .navbar .links a {
+        font-size: 0.85rem;
+      }
       .navbar .actions {
         display: none;
       }
 
-      /* Show floating button */
       .mobile-nav {
         display: block;
         position: fixed;
@@ -211,6 +215,7 @@
       <nav class="links">
         <a href="./index.html">Home</a>
         <a href="./about.html" class="active">About Us</a>
+        <a href="./timer.html">My Baking Timer</a>
       </nav>
       <div class="actions">
         <a href="./index.html" class="btn">🛒 Shop Now</a>

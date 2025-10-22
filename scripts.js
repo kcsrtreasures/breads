@@ -745,9 +745,7 @@ function updateLoginButton(user = null) {
                   const cleanLogin = document.createElement("button");
                   cleanLogin.className = "login";
                   cleanLogin.innerHTML = `
-  <img src="Bigger logo.png" alt="Gossip Logo" style="height: 22px; vertical-align: middle; margin-right: 6px;">
-  
-`;
+  <img src="Bigger logo.png" alt="Gossip Logo" style="height: 20px; vertical-align: middle; margin-right: 6px;">`;
 
                   // cleanLogin.textContent = "Login via Gossip";
                   cleanLogin.addEventListener("click", openLogin);

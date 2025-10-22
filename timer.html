@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Baking Timer</title>
+<link rel="icon" type="image/png" href="breadroll.png"/>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+html, body {
+  height: 100%; margin: 0;
+  display: flex; flex-direction: column;
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(180deg, #faf7f2, #f2e7dc);
+  color: #2e2e2e;
+}
+header {
+  background: linear-gradient(90deg, #e6d5c3, #c9a574);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  position: sticky; top: 0; z-index: 100;
+}
+.navbar { display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; padding:0.4rem 1.5rem;}
+.navbar .logo img { height:45px; }
+.navbar .links { display:flex; gap:2rem; flex-wrap:wrap; }
+.navbar .links a { position:relative; text-decoration:none; font-weight:500; color:#2e2e2e; padding-bottom:2px; transition:color 0.3s; font-size:0.95rem; }
+.navbar .links a::after { content:""; position:absolute; width:0%; height:2px; bottom:0; left:0; background-color:#6b4b2c; transition:width 0.3s ease; }
+.navbar .links a:hover::after, .navbar .links a.active::after { width:100%; }
+.navbar .links a.active { color:#6b4b2c; }
+.navbar .actions .btn { padding:0.4rem 1rem; background:linear-gradient(90deg, #6b4b2c, #4a3320); color:#fff; font-weight:600; border-radius:50px; text-decoration:none; font-size:0.85rem; display:inline-flex; align-items:center; justify-content:center; transition: background 0.3s, transform 0.2s; }
+.navbar .actions .btn:hover { background:linear-gradient(90deg, #4a3320, #2e1f12); transform: scale(1.05); }
+
+main { flex:1; display:flex; flex-direction:column; align-items:center; padding:2rem; background:#f5ede2; }
+#timersWrapper { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; }
+.timer-container { text-align:center; max-width:420px; width:100%; padding:2rem; background:rgba(255,255,255,0.85); border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.08); backdrop-filter:blur(6px); animation: fadeIn 0.8s ease; }
+.timer-container h2 { margin-bottom:15px; font-size:1.5rem; color:#6b4b2c; }
+.timer-container input.timerName { width:100%; margin-bottom:10px; padding:6px 10px; font-size:1rem; border:2px solid #ccc; border-radius:8px; outline:none; text-align:center; box-sizing:border-box; }
+.timer-container input.timerName:focus { border-color:#b85c38; }
+.timeDisplay { font-size:3rem; font-weight:bold; margin:15px 0; color:#b85c38; }
+
+.input-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+.time-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 70px;
+}
+.time-input input {
+  width: 70px;
+  text-align: center;
+  font-size: 1rem;
+  padding: 6px;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  outline: none;
+  margin-top:5px;
+}
+.time-input button {
+  width: 70px;
+  padding: 8px 0;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid #999;
+  background: linear-gradient(145deg, #f0d9b5, #caa885);
+  color: #3e2f1c;
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.15), -2px -2px 5px rgba(255,255,255,0.6);
+  user-select: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.time-input button:hover {
+  transform: scale(1.05);
+  box-shadow: 3px 3px 6px rgba(0,0,0,0.2), -3px -3px 6px rgba(255,255,255,0.7);
+}
+.time-input .decBtn {
+  margin-top:5px;
+  background: linear-gradient(145deg, #caa885, #f0d9b5);
+}
+
+.time-input button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.timer-controls { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:10px; }
+.timer-controls button { padding:8px 16px; border:none; border-radius:10px; color:#fff; cursor:pointer; font-size:0.95rem; font-weight:600; transition: transform 0.2s, opacity 0.2s; }
+.startBtn { background:#3cb371; } .pauseBtn { background:#ffa500; } .resetBtn { background:#d9534f; } .closeBtn { background:#888; }
+.timer-controls button:hover { transform:scale(1.05); opacity:0.9; }
+
+#addTimerBtn { margin-bottom:20px; padding:10px 20px; border:none; border-radius:50px; font-weight:600; cursor:pointer; background:linear-gradient(90deg,#3cb371,#2e8b57); color:#fff; transition:transform 0.2s; }
+#addTimerBtn:hover { transform:scale(1.05); }
+
+footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574); color:#2e2e2e; padding:0.5rem 0; font-size:0.75rem; margin-top:auto; }
+.mobile-nav { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:linear-gradient(90deg, #6b4b2c, #4a3320); color:#fff !important; font-weight:700; text-shadow:1px 1px 2px rgba(0,0,0,0.3); padding:0.75rem 1.4rem; border-radius:50px; text-decoration:none; font-size:0.95rem; box-shadow:0 4px 8px rgba(0,0,0,0.25); z-index:999; transition: transform 0.2s, opacity 0.2s; }
+.mobile-nav a:visited { color:#fff !important; }
+.mobile-nav:hover { transform:translateX(-50%) scale(1.05); opacity:0.9; }
+
+@media (min-width:769px) { .mobile-nav { display:none; } }
+@media (max-width:768px) {
+  .navbar .links { gap:1.2rem; } 
+  .navbar .links a { font-size:0.85rem; } 
+  .navbar .actions { display:none; }
+  .timer-container { max-width:95%; padding:1rem; }
+  .timeDisplay { font-size:2rem; margin:10px 0; }
+  .time-input input { width:60px; }
+  .time-input button { width:60px; font-size:0.85rem; }
+}
+
+@keyframes fadeIn { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+<header>
+  <div class="navbar">
+    <div class="logo"><a href="./index.html"><img src="logo4.png" alt="KCSR Breads Logo" /></a></div>
+    <nav class="links">
+      <a href="./index.html">Home</a>
+      <a href="./about.html">About Us</a>
+      <a href="./timer.html" class="active">My Baking Timer</a>
+    </nav>
+    <div class="actions"><a href="./index.html" class="btn">🛒 Shop Now</a></div>
+  </div>
+</header>
+
+<main>
+  <button id="addTimerBtn">➕ Add Timer</button>
+  <div id="timersWrapper">
+    <div class="timer-container">
+      <input type="text" class="timerName" placeholder="Optional: Timer Name">
+      <h2>⏲️ My Baking Timer 1</h2>
+      <div class="input-group">
+        <div class="time-input">
+          <button class="incBtn">HR</button>
+          <input type="number" class="hoursInput" min="0" max="23" value="0">
+          <button class="decBtn">▼</button>
+        </div>
+        <div class="time-input">
+          <button class="incBtn">MIN</button>
+          <input type="number" class="minutesInput" min="0" max="59" value="0">
+          <button class="decBtn">▼</button>
+        </div>
+        <div class="time-input">
+          <button class="incBtn">SEC</button>
+          <input type="number" class="secondsInput" min="0" max="59" value="0">
+          <button class="decBtn">▼</button>
+        </div>
+      </div>
+      <div class="timeDisplay">00:00:00</div>
+      <div class="timer-controls">
+        <button class="startBtn">▶ Start</button>
+        <button class="pauseBtn">⏸ Pause</button>
+        <button class="resetBtn">🔁 Reset</button>
+        <button class="closeBtn">❌ Close</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>&copy; 2025 KCSR Breads atbp. All rights reserved.</footer>
+<nav id="mobileNav" class="mobile-nav"><a href="./index.html">🧁 Get Baked Goodies</a></nav>
+
+<audio id="dingSound" preload="auto">
+  <source src="alarm digital.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const dingSound = document.getElementById("dingSound");
+document.body.addEventListener("click", () => { 
+  dingSound.play().then(() => { dingSound.pause(); dingSound.currentTime=0; }).catch(() => {}); 
+}, { once: true });
+
+let timerCount = 1;
+
+function createTimer(container, number){
+  let timer, totalSeconds=0, running=false;
+  const timerNameInput = container.querySelector(".timerName");
+  const hoursInput = container.querySelector(".hoursInput");
+  const minutesInput = container.querySelector(".minutesInput");
+  const secondsInput = container.querySelector(".secondsInput");
+  const timeDisplay = container.querySelector(".timeDisplay");
+  const startBtn = container.querySelector(".startBtn");
+  const pauseBtn = container.querySelector(".pauseBtn");
+  const resetBtn = container.querySelector(".resetBtn");
+  const closeBtn = container.querySelector(".closeBtn");
+  const defaultName = `Timer ${number}`;
+  container.querySelector("h2").textContent = `⏲️ ${defaultName}`;
+
+  function updateDisplay(){
+    const h=parseInt(hoursInput.value)||0;
+    const m=parseInt(minutesInput.value)||0;
+    const s=parseInt(secondsInput.value)||0;
+    totalSeconds=h*3600+m*60+s;
+    const dispH=Math.floor(totalSeconds/3600);
+    const dispM=Math.floor((totalSeconds%3600)/60);
+    const dispS=totalSeconds%60;
+    timeDisplay.textContent=`${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
+
+    container.querySelectorAll(".time-input").forEach(ti=>{
+      const input = ti.querySelector("input");
+      const decBtn = ti.querySelector(".decBtn");
+      decBtn.disabled = parseInt(input.value)<=parseInt(input.min);
+    });
+  }
+
+  container.querySelectorAll(".incBtn, .decBtn").forEach(btn=>{
+    let interval;
+    const input = btn.closest(".time-input").querySelector("input");
+    const step = btn.classList.contains("incBtn") ? 1 : -1;
+    const min = parseInt(input.min);
+    const max = parseInt(input.max);
+
+    const change = ()=>{
+      let val = parseInt(input.value)||0;
+      val += step;
+      val = Math.min(max, Math.max(min, val));
+      input.value = val;
+      updateDisplay();
+    };
+
+    btn.addEventListener("mousedown", ()=>{ change(); interval=setInterval(change,150); });
+    btn.addEventListener("mouseup", ()=>clearInterval(interval));
+    btn.addEventListener("mouseleave", ()=>clearInterval(interval));
+    btn.addEventListener("touchstart", e=>{ e.preventDefault(); change(); interval=setInterval(change,150); }, {passive:false});
+    btn.addEventListener("touchend", ()=>clearInterval(interval));
+  });
+
+  startBtn.addEventListener("click", ()=>{
+    if(running) return;
+    if(totalSeconds===0){
+      totalSeconds=(parseInt(hoursInput.value)||0)*3600 + (parseInt(minutesInput.value)||0)*60 + (parseInt(secondsInput.value)||0);
+    }
+    if(totalSeconds<=0) return alert("Please enter a valid time!");
+    running=true;
+    timer=setInterval(()=>{
+      if(totalSeconds>0){
+        totalSeconds--;
+        const dispH=Math.floor(totalSeconds/3600);
+        const dispM=Math.floor((totalSeconds%3600)/60);
+        const dispS=totalSeconds%60;
+        timeDisplay.textContent=`${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
+      } else{
+        clearInterval(timer); running=false;
+        dingSound.currentTime=0; dingSound.loop=true; dingSound.play().catch(()=>{});
+        const name = timerNameInput.value.trim() || defaultName;
+        alert(`⏰ ${name} done! Check your bread!`);
+        dingSound.pause(); dingSound.currentTime=0;
+      }
+    },1000);
+  });
+
+  pauseBtn.addEventListener("click", ()=>{ running=false; clearInterval(timer); });
+  resetBtn.addEventListener("click", ()=>{
+    running=false; clearInterval(timer);
+    hoursInput.value='0'; minutesInput.value='0'; secondsInput.value='0';
+    updateDisplay(); dingSound.pause(); dingSound.currentTime=0;
+  });
+
+  if(closeBtn){
+    closeBtn.addEventListener("click", ()=>{
+      running=false; clearInterval(timer);
+      container.remove();
+    });
+  }
+
+  updateDisplay();
+}
+
+document.querySelectorAll(".timer-container").forEach((t)=>createTimer(t, timerCount++));
+
+document.getElementById("addTimerBtn").addEventListener("click", ()=>{
+  const timersWrapper=document.getElementById("timersWrapper");
+  const newTimer=document.createElement("div");
+  newTimer.className="timer-container";
+  newTimer.innerHTML=`
+    <input type="text" class="timerName" placeholder="Optional: Timer Name">
+    <h2></h2>
+    <div class="input-group">
+      <div class="time-input">
+        <button class="incBtn">HR</button>
+        <input type="number" class="hoursInput" min="0" max="23" value="0">
+        <button class="decBtn">▼</button>
+      </div>
+      <div class="time-input">
+        <button class="incBtn">MIN</button>
+        <input type="number" class="minutesInput" min="0" max="59" value="0">
+        <button class="decBtn">▼</button>
+      </div>
+      <div class="time-input">
+        <button class="incBtn">SEC</button>
+        <input type="number" class="secondsInput" min="0" max="59" value="0">
+        <button class="decBtn">▼</button>
+      </div>
+    </div>
+    <div class="timeDisplay">00:00:00</div>
+    <div class="timer-controls">
+      <button class="startBtn">▶ Start</button>
+      <button class="pauseBtn">⏸ Pause</button>
+      <button class="resetBtn">🔁 Reset</button>
+      <button class="closeBtn">❌ Close</button>
+    </div>
+  `;
+  timersWrapper.appendChild(newTimer);
+  createTimer(newTimer, timerCount++);
+});
+</script>
+</body>
+</html>
