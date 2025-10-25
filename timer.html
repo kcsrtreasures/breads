@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>My Baking Timer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#c9a574">
+
 <link rel="icon" type="image/png" href="breadroll.png"/>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 <style>
@@ -26,15 +29,35 @@ header {
 .navbar .links a::after { content:""; position:absolute; width:0%; height:2px; bottom:0; left:0; background-color:#6b4b2c; transition:width 0.3s ease; }
 .navbar .links a:hover::after, .navbar .links a.active::after { width:100%; }
 .navbar .links a.active { color:#6b4b2c; }
+.navbar .links button { padding:0.2rem 0.5rem; background:linear-gradient(90deg, #a6e4a0, #f3604d); color:#fff; font-weight:500; border-radius:50px; text-decoration:none; font-size:0.85rem; align-items:center; justify-content:center; transition: background 0.3s, transform 0.2s; }
+.navbar .links button:hover { background:linear-gradient(90deg, #96eb78, #3164f1); transform: scale(1.05); }
 .navbar .actions .btn { padding:0.4rem 1rem; background:linear-gradient(90deg, #6b4b2c, #4a3320); color:#fff; font-weight:600; border-radius:50px; text-decoration:none; font-size:0.85rem; display:inline-flex; align-items:center; justify-content:center; transition: background 0.3s, transform 0.2s; }
 .navbar .actions .btn:hover { background:linear-gradient(90deg, #4a3320, #2e1f12); transform: scale(1.05); }
 
 main { flex:1; display:flex; flex-direction:column; align-items:center; padding:2rem; background:#f5ede2; }
-#timersWrapper { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; }
+#timersWrapper { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; max-width: 1200px; }
 .timer-container { text-align:center; max-width:420px; width:100%; padding:2rem; background:rgba(255,255,255,0.85); border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.08); backdrop-filter:blur(6px); animation: fadeIn 0.8s ease; }
+.timer-row{display:flex;gap:.6rem;align-items:center;justify-content:center;margin-bottom:.6rem}
+.timer-row input.timerName{flex:1;padding:8px 10px;border-radius:8px;border:2px solid #ccc;font-size:1rem;text-align:center;outline:none}
+.timer-row select.soundSelect{padding:8px;border-radius:8px;border:2px solid #ccc;background:#fff;font-size:.95rem}
+.timer-row input.timerName:focus, .timer-row select.soundSelect:focus{border-color:#b85c38}
+
 .timer-container h2 { margin-bottom:15px; font-size:1.5rem; color:#6b4b2c; }
-.timer-container input.timerName { width:100%; margin-bottom:10px; padding:6px 10px; font-size:1rem; border:2px solid #ccc; border-radius:8px; outline:none; text-align:center; box-sizing:border-box; }
-.timer-container input.timerName:focus { border-color:#b85c38; }
+/* .timer-container input.timerName { width:100%; margin-bottom:10px; padding:6px 10px; font-size:1rem; border:2px solid #ccc; border-radius:8px; outline:none; text-align:center; box-sizing:border-box; } */
+/* .timer-container input.timerName:focus { border-color:#b85c38; } */
+/* .timer-container select.soundSelect {
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+  outline: none;
+  width: 100%;
+  background-color: #fff;
+  color: #333;
+} */
+.soundSelect:focus { border-color:#b85c38; }
+
 .timeDisplay { font-size:3rem; font-weight:bold; margin:15px 0; color:#b85c38; }
 
 .input-group {
@@ -105,6 +128,8 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 @media (max-width:768px) {
   .navbar .links { gap:1.2rem; } 
   .navbar .links a { font-size:0.85rem; } 
+  /* .navbar .links button { padding:0.2rem 0.5rem; background:linear-gradient(90deg, #a6e4a0, #f3604d); color:#fff; font-weight:600; border-radius:50px; text-decoration:none; font-size:0.85rem; align-items:center; justify-content:center; transition: background 0.3s, transform 0.2s; }
+  .navbar .links button:hover { background:linear-gradient(90deg, #d5eecc, #54eb6d); transform: scale(1.05); } */
   .navbar .actions { display:none; }
   .timer-container { max-width:95%; padding:1rem; }
   .timeDisplay { font-size:2rem; margin:10px 0; }
@@ -113,6 +138,28 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 }
 
 @keyframes fadeIn { from {opacity:0; transform:translateY(20px);} to {opacity:1; transform:translateY(0);} }
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #6b4b2c;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s, transform 0.4s;
+  z-index: 9999;
+  font-weight: 500;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
 </style>
 </head>
 <body>
@@ -123,17 +170,32 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
       <a href="./index.html">Home</a>
       <a href="./about.html">About Us</a>
       <a href="./timer.html" class="active">My Baking Timer</a>
+      <button id="installBtn" style="display:none;">📲 Install App</button>
     </nav>
-    <div class="actions"><a href="./index.html" class="btn">🛒 Shop Now</a></div>
+    <div class="actions"><a href="./index.html" class="btn">🛒 Shop Now</a>
+    </div>
   </div>
 </header>
 
 <main>
   <button id="addTimerBtn">➕ Add Timer</button>
+
   <div id="timersWrapper">
     <div class="timer-container">
+       <div class="timer-row">
       <input type="text" class="timerName" placeholder="Optional: Timer Name">
+      <select class="soundSelect">
+        <option value="alarm digital.mp3">Digital Beep</option>
+        <option value="huntrix_golden.mp3">Huntrix</option>
+        <option value="Soda Pop.mp3">Soda</option>
+        <option value="timer1.mp3">Timer 1</option>
+        <option value="timer2.mp3">Timer 2</option>
+        <option value="timer3.mp3">Timer 3</option>
+      </select>
+      </div>
+
       <h2>⏲️ My Baking Timer 1</h2>
+
       <div class="input-group">
         <div class="time-input">
           <button class="incBtn">HR</button>
@@ -151,34 +213,121 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
           <button class="decBtn">▼</button>
         </div>
       </div>
+
       <div class="timeDisplay">00:00:00</div>
+
       <div class="timer-controls">
         <button class="startBtn">▶ Start</button>
         <button class="pauseBtn">⏸ Pause</button>
-        <button class="resetBtn">🔁 Reset</button>
+        <button class="resetBtn">⏹ Stop/Reset</button>
         <button class="closeBtn">❌ Close</button>
       </div>
     </div>
   </div>
+
+  <!-- <div class="actions">
+    <button id="installBtn" style="display:none;" class="btn">📲 Install App</button>
+  </div> -->
+
 </main>
 
 <footer>&copy; 2025 KCSR Breads atbp. All rights reserved.</footer>
-<nav id="mobileNav" class="mobile-nav"><a href="./index.html">🧁 Get Baked Goodies</a></nav>
+<nav id="mobileNav" class="mobile-nav">
+  <a href="./index.html">🧁 Get Baked Goodies</a>
+</nav>
 
 <audio id="dingSound" preload="auto">
   <source src="alarm digital.mp3" type="audio/mpeg">
 </audio>
 
 <script>
-const dingSound = document.getElementById("dingSound");
-document.body.addEventListener("click", () => { 
-  dingSound.play().then(() => { dingSound.pause(); dingSound.currentTime=0; }).catch(() => {}); 
-}, { once: true });
+
+
+/* ---------- Quick helpers ---------- */
+const playSilentUnlock = () => {
+  // Unlock audio on first interaction (some mobile browsers require it)
+  const ding=document.getElementById('dingSound');
+  ding.play().then(()=>{ ding.pause(); ding.currentTime=0; }).catch(()=>{});
+};
+document.body.addEventListener('click', playSilentUnlock, { once: true });
+
+// const dingSound = document.getElementById("dingSound");
+// document.body.addEventListener("click", () => { 
+//   dingSound.play().then(() => { dingSound.pause(); dingSound.currentTime=0; }).catch(() => {}); 
+// }, { once: true });
 
 let timerCount = 1;
 
+let toastOffset = 0;
+function showToast(msg, withStopButton = false, audio = null) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.style.left = "50%";
+  toast.style.transform = "translateX(-50%)";
+  toast.style.bottom = `${20 + toastOffset}px`;
+
+  if (withStopButton && audio) {
+    toast.innerHTML = `
+      <span>${msg}</span>
+      <button style="
+        background: linear-gradient(90deg, #c0392b, #e74c3c);
+        color: #fff;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin-left: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      ">Stop</button>
+    `;
+
+    const stopBtn = toast.querySelector("button");
+    stopBtn.addEventListener("click", () => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
+      toast.remove();
+      showToast("✅ Sound stopped.");
+    });
+
+    stopBtn.addEventListener("mouseenter", () => {
+      stopBtn.style.transform = "scale(1.05)";
+      stopBtn.style.opacity = "0.9";
+    });
+    stopBtn.addEventListener("mouseleave", () => {
+      stopBtn.style.transform = "scale(1)";
+      stopBtn.style.opacity = "1";
+    });
+  } else {
+    toast.textContent = msg;
+  }
+
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("show"));
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
+
+  toastOffset += 70;
+  setTimeout(() => (toastOffset = Math.max(0, toastOffset - 70)), 4000);
+}
+
+
+
+
+
+
 function createTimer(container, number){
-  let timer, totalSeconds=0, running=false;
+  let timer = null;
+  let totalSeconds = 0;
+  let running = false;
+  let resetClickedOnce = false;
+
   const timerNameInput = container.querySelector(".timerName");
   const hoursInput = container.querySelector(".hoursInput");
   const minutesInput = container.querySelector(".minutesInput");
@@ -188,26 +337,54 @@ function createTimer(container, number){
   const pauseBtn = container.querySelector(".pauseBtn");
   const resetBtn = container.querySelector(".resetBtn");
   const closeBtn = container.querySelector(".closeBtn");
+  const soundSelect = container.querySelector(".soundSelect");
+
   const defaultName = `Timer ${number}`;
   container.querySelector("h2").textContent = `⏲️ ${defaultName}`;
 
+  // Per-timer audio
+  const audio = new Audio(soundSelect.value);
+  audio.preload = "auto";
+
+  // Update header when timer name changes
+  timerNameInput.addEventListener('input', () => {
+    container.querySelector("h2").textContent = `⏲️ ${timerNameInput.value || defaultName}`;
+  });
+
+  // Update time display from inputs or totalSeconds
   function updateDisplay(){
-    const h=parseInt(hoursInput.value)||0;
-    const m=parseInt(minutesInput.value)||0;
-    const s=parseInt(secondsInput.value)||0;
-    totalSeconds=h*3600+m*60+s;
-    const dispH=Math.floor(totalSeconds/3600);
-    const dispM=Math.floor((totalSeconds%3600)/60);
-    const dispS=totalSeconds%60;
+    let dispH, dispM, dispS;
+
+    if(running || totalSeconds > 0){
+      dispH = Math.floor(totalSeconds / 3600);
+      dispM = Math.floor((totalSeconds % 3600) / 60);
+      dispS = totalSeconds % 60;
+    } else {
+      const h=parseInt(hoursInput.value)||0;
+      const m=parseInt(minutesInput.value)||0;
+      const s=parseInt(secondsInput.value)||0;
+      dispH = h; dispM = m; dispS = s;
+    }
+
     timeDisplay.textContent=`${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
 
+    // Disable decrement buttons if at min
     container.querySelectorAll(".time-input").forEach(ti=>{
       const input = ti.querySelector("input");
       const decBtn = ti.querySelector(".decBtn");
-      decBtn.disabled = parseInt(input.value)<=parseInt(input.min);
+      decBtn.disabled = parseInt(input.value) <= parseInt(input.min);
     });
   }
 
+  // Sound select listener
+  if(soundSelect){
+    soundSelect.addEventListener('change', ()=> {
+      audio.src = soundSelect.value;
+      audio.load();
+    });
+  }
+
+  // Increment/decrement buttons
   container.querySelectorAll(".incBtn, .decBtn").forEach(btn=>{
     let interval;
     const input = btn.closest(".time-input").querySelector("input");
@@ -215,7 +392,7 @@ function createTimer(container, number){
     const min = parseInt(input.min);
     const max = parseInt(input.max);
 
-    const change = ()=>{
+    const change = () => {
       let val = parseInt(input.value)||0;
       val += step;
       val = Math.min(max, Math.max(min, val));
@@ -230,46 +407,93 @@ function createTimer(container, number){
     btn.addEventListener("touchend", ()=>clearInterval(interval));
   });
 
-  startBtn.addEventListener("click", ()=>{
+  // START button (handles countdown and stopwatch)
+  startBtn.addEventListener("click", () => {
     if(running) return;
-    if(totalSeconds===0){
-      totalSeconds=(parseInt(hoursInput.value)||0)*3600 + (parseInt(minutesInput.value)||0)*60 + (parseInt(secondsInput.value)||0);
+
+    const h = parseInt(hoursInput.value) || 0;
+    const m = parseInt(minutesInput.value) || 0;
+    const s = parseInt(secondsInput.value) || 0;
+
+    const isStopwatch = (h === 0 && m === 0 && s === 0);
+
+    // Only initialize totalSeconds if first start or after full reset
+    if(totalSeconds === 0 && !isStopwatch){
+      totalSeconds = h*3600 + m*60 + s;
+      if(totalSeconds <= 0) return alert("Please enter a valid time!");
     }
-    if(totalSeconds<=0) return alert("Please enter a valid time!");
-    running=true;
-    timer=setInterval(()=>{
-      if(totalSeconds>0){
-        totalSeconds--;
-        const dispH=Math.floor(totalSeconds/3600);
-        const dispM=Math.floor((totalSeconds%3600)/60);
-        const dispS=totalSeconds%60;
-        timeDisplay.textContent=`${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
-      } else{
-        clearInterval(timer); running=false;
-        dingSound.currentTime=0; dingSound.loop=true; dingSound.play().catch(()=>{});
-        const name = timerNameInput.value.trim() || defaultName;
-        alert(`⏰ ${name} done! Check your bread!`);
-        dingSound.pause(); dingSound.currentTime=0;
+
+    running = true;
+
+    timer = setInterval(() => {
+      if(isStopwatch){
+        totalSeconds++;
+      } else {
+        if(totalSeconds > 0){
+          totalSeconds--;
+        } else {
+          clearInterval(timer);
+          running = false;
+          audio.currentTime = 0;
+          audio.loop = true;
+          audio.play().catch(()=>{});
+          const name = timerNameInput.value.trim() || defaultName;
+          showToast(`⏰ ${name} done! Check your bread!`, true, audio);
+          return;
+        }
       }
-    },1000);
+
+      updateDisplay();
+    }, 1000);
   });
 
-  pauseBtn.addEventListener("click", ()=>{ running=false; clearInterval(timer); });
-  resetBtn.addEventListener("click", ()=>{
-    running=false; clearInterval(timer);
-    hoursInput.value='0'; minutesInput.value='0'; secondsInput.value='0';
-    updateDisplay(); dingSound.pause(); dingSound.currentTime=0;
+  // PAUSE button
+  pauseBtn.addEventListener("click", () => {
+    running = false;
+    clearInterval(timer);
   });
 
+  // RESET button (1 click stop, 2 clicks full reset)
+  resetBtn.addEventListener("click", () => {
+    clearInterval(timer);
+    running = false;
+    audio.pause();
+    audio.currentTime = 0;
+    audio.loop = false;
+
+    if(!resetClickedOnce){
+      const name = timerNameInput.value.trim() || defaultName;
+      showToast(`⏹ ${name} stopped. Click again to reset.`);
+      resetClickedOnce = true;
+      setTimeout(()=>resetClickedOnce=false,4000);
+      return;
+    }
+
+    // Full reset
+    hoursInput.value = '0';
+    minutesInput.value = '0';
+    secondsInput.value = '0';
+    totalSeconds = 0;
+    updateDisplay();
+    showToast("🔁 Timer fully reset.");
+    resetClickedOnce = false;
+  });
+
+  // CLOSE button
   if(closeBtn){
-    closeBtn.addEventListener("click", ()=>{
-      running=false; clearInterval(timer);
+    closeBtn.addEventListener("click", () => {
+      running=false;
+      clearInterval(timer);
+      audio.pause();
+      audio.currentTime = 0;
       container.remove();
     });
   }
 
+  // Initial display
   updateDisplay();
 }
+
 
 document.querySelectorAll(".timer-container").forEach((t)=>createTimer(t, timerCount++));
 
@@ -278,7 +502,17 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   const newTimer=document.createElement("div");
   newTimer.className="timer-container";
   newTimer.innerHTML=`
-    <input type="text" class="timerName" placeholder="Optional: Timer Name">
+    <div class="timer-row">
+      <input type="text" class="timerName" placeholder="Optional: Timer Name">
+      <select class="soundSelect" aria-label="Select sound">
+        <option value="alarm digital.mp3">Digital Beep</option>
+        <option value="huntrix_golden.mp3">Huntrix</option>
+        <option value="Soda Pop.mp3">Soda</option>
+        <option value="timer1.mp3">Timer 1</option>
+        <option value="timer2.mp3">Timer 2</option>
+        <option value="timer3.mp3">Timer 3</option>
+      </select>
+    </div>
     <h2></h2>
     <div class="input-group">
       <div class="time-input">
@@ -301,13 +535,66 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
     <div class="timer-controls">
       <button class="startBtn">▶ Start</button>
       <button class="pauseBtn">⏸ Pause</button>
-      <button class="resetBtn">🔁 Reset</button>
+      <button class="resetBtn">⏹ Stop/Reset</button>
       <button class="closeBtn">❌ Close</button>
     </div>
   `;
   timersWrapper.appendChild(newTimer);
+
+    // ✅ Each timer gets its own audio object and dropdown listener
+  const soundSelect = newTimer.querySelector(".soundSelect");
+  const audio = new Audio(soundSelect.value);
+  newTimer.audio = audio; // store reference for later use
+
+  soundSelect.addEventListener("change", () => {
+    audio.src = soundSelect.value;
+    audio.load();
+  });
+
+  // Optional debug: notify if a sound file is missing
+  audio.addEventListener("error", () => {
+    showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
+  });
+
   createTimer(newTimer, timerCount++);
 });
+
+// ======= PWA INSTALL LOGIC =======
+let deferredPrompt;
+const installBtn = document.getElementById("installBtn");
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = "inline-block"; // Show button when ready
+});
+
+installBtn.addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === "accepted") {
+    console.log("✅ App installed");
+  } else {
+    console.log("❌ Installation dismissed");
+  }
+  deferredPrompt = null;
+  installBtn.style.display = "none";
+});
+
+
+
+
+// ======= REGISTER SERVICE WORKER =======
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("service-worker.js")
+      .then(() => console.log("✅ Service Worker Registered"))
+      .catch((err) => console.log("❌ SW registration failed:", err));
+  });
+}
+ 
 </script>
 </body>
 </html>

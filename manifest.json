@@ -1,0 +1,20 @@
+{
+  "name": "My Baking Timer",
+  "short_name": "Baking Timer",
+  "start_url": "./timer.html",
+  "display": "standalone",
+  "background_color": "#faf7f2",
+  "theme_color": "#c9a574",
+  "icons": [
+    {
+      "src": "breadroll.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo4.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
