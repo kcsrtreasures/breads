@@ -247,7 +247,7 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 </nav>
 
 <audio id="dingSound" preload="auto">
-  <source src="alarm digital.mp3" type="audio/mpeg">
+  <source src="sounds/alarm digital.mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -255,9 +255,13 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 
 /* ---------- Quick helpers ---------- */
 const playSilentUnlock = () => {
-  // Unlock audio on first interaction (some mobile browsers require it)
-  const ding=document.getElementById('dingSound');
-  ding.play().then(()=>{ ding.pause(); ding.currentTime=0; }).catch(()=>{});
+  const ding = document.getElementById('dingSound');
+  if (ding) {
+    ding.play().then(() => {
+      ding.pause();
+      ding.currentTime = 0;
+    }).catch(() => {});
+  }
 };
 document.body.addEventListener('click', playSilentUnlock, { once: true });
 
@@ -515,12 +519,12 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
     <div class="timer-row">
       <input type="text" class="timerName" placeholder="Optional: Timer Name">
       <select class="soundSelect" aria-label="Select sound">
-        <option value="alarm digital.mp3">Digital Beep</option>
-        <option value="huntrix_golden.mp3">Huntrix</option>
-        <option value="Soda Pop.mp3">Soda</option>
-        <option value="timer1.mp3">Timer 1</option>
-        <option value="timer2.mp3">Timer 2</option>
-        <option value="timer3.mp3">Timer 3</option>
+        <option value="sounds/alarm digital.mp3">Digital Beep</option>
+        <option value="sounds/huntrix_golden.mp3">Huntrix</option>
+        <option value="sounds/Soda Pop.mp3">Soda</option>
+        <option value="sounds/timer1.mp3">Timer 1</option>
+        <option value="sounds/timer2.mp3">Timer 2</option>
+        <option value="sounds/timer3.mp3">Timer 3</option>
       </select>
     </div>
     <h2></h2>
@@ -551,22 +555,26 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   `;
   timersWrapper.appendChild(newTimer);
 
-    // ✅ Each timer gets its own audio object and dropdown listener
+  // ✅ Load audio safely (cached by service worker)
   const soundSelect = newTimer.querySelector(".soundSelect");
-  const audio = new Audio(soundSelect.value);
-  newTimer.audio = audio; // store reference for later use
+  let audio = new Audio(soundSelect.value);
 
-  soundSelect.addEventListener("change", () => {
-    audio.src = soundSelect.value;
-    audio.load();
-  });
-
-  // Optional debug: notify if a sound file is missing
+  // Detect loading errors (for example if file was missing before caching)
   audio.addEventListener("error", () => {
     showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
   });
 
-  createTimer(newTimer, timerCount++);
+  // Update the audio when user changes dropdown
+  soundSelect.addEventListener("change", () => {
+    audio = new Audio(soundSelect.value);
+    audio.addEventListener("error", () => {
+      showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
+    });
+    newTimer.audio = audio;
+  });
+
+  // Create the timer and attach its audio
+  createTimer(newTimer, timerCount++, audio);
 });
 
 // ======= PWA INSTALL LOGIC =======
