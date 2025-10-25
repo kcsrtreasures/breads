@@ -131,7 +131,7 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
   /* .navbar .links button { padding:0.2rem 0.5rem; background:linear-gradient(90deg, #a6e4a0, #f3604d); color:#fff; font-weight:600; border-radius:50px; text-decoration:none; font-size:0.85rem; align-items:center; justify-content:center; transition: background 0.3s, transform 0.2s; }
   .navbar .links button:hover { background:linear-gradient(90deg, #d5eecc, #54eb6d); transform: scale(1.05); } */
   .navbar .actions { display:none; }
-  .timer-container { max-width:100%; padding:1rem; }
+  .timer-container { max-width:95%; padding:1rem; }
   .timeDisplay { font-size:2rem; margin:10px 0; }
   .time-input input { width:60px; }
   .time-input button { width:60px; font-size:0.85rem; }
@@ -142,7 +142,7 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
     max-width: 55%;
   }
   .timer-row select.soundSelect {
-    max-width: 40%;
+    max-width: 35%;
   }
 }
 
@@ -250,12 +250,6 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
   <source src="alarm digital.mp3" type="audio/mpeg">
 </audio>
 
-<audio id="audio-huntrix" preload="auto" src="huntrix_golden.mp3"></audio>
-<audio id="audio-soda" preload="auto" src="Soda Pop.mp3"></audio>
-<audio id="audio-timer1" preload="auto" src="timer1.mp3"></audio>
-<audio id="audio-timer2" preload="auto" src="timer2.mp3"></audio>
-<audio id="audio-timer3" preload="auto" src="timer3.mp3"></audio>
-
 <script>
 
 
@@ -346,7 +340,7 @@ function showToast(msg, withStopButton = false, audio = null) {
 
 
 
-function createTimer(container, number){
+function createTimer(container, number, audio){
   let timer = null;
   let totalSeconds = 0;
   let running = false;
@@ -363,24 +357,10 @@ function createTimer(container, number){
   const closeBtn = container.querySelector(".closeBtn");
   const soundSelect = container.querySelector(".soundSelect");
 
-  const soundMap = {
-  "alarm digital.mp3": document.getElementById("dingSound"),
-  "huntrix_golden.mp3": document.getElementById("audio-huntrix"),
-  "Soda Pop.mp3": document.getElementById("audio-soda"),
-  "timer1.mp3": document.getElementById("audio-timer1"),
-  "timer2.mp3": document.getElementById("audio-timer2"),
-  "timer3.mp3": document.getElementById("audio-timer3"),
-  };
-
   const defaultName = `Timer ${number}`;
   container.querySelector("h2").textContent = `⏲️ ${defaultName}`;
 
-  // Inside createTimer():
-  let audio = soundMap[soundSelect.value]; // get preloaded audio
-
-  soundSelect.addEventListener("change", () => {
-    audio = soundMap[soundSelect.value];
-  });
+  audio.preload = "auto";
 
   // Update header when timer name changes
   timerNameInput.addEventListener('input', () => {
@@ -579,14 +559,35 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
 
     // ✅ Each timer gets its own audio object and dropdown listener
   const soundSelect = newTimer.querySelector(".soundSelect");
+  // ✅ Use a fresh reference to the preloaded audio for this timer
+  const audioMap = {
+    "alarm digital.mp3": document.getElementById("dingSound").cloneNode(true),
+    "huntrix_golden.mp3": document.getElementById("audio-huntrix").cloneNode(true),
+    "Soda Pop.mp3": document.getElementById("audio-soda").cloneNode(true),
+    "timer1.mp3": document.getElementById("audio-timer1").cloneNode(true),
+    "timer2.mp3": document.getElementById("audio-timer2").cloneNode(true),
+    "timer3.mp3": document.getElementById("audio-timer3").cloneNode(true),
+  };
 
+  let audio = audioMap[soundSelect.value];
+  
+  createTimer(newTimer, timerCount++, audio);
+  
+  audio.addEventListener("error", () => {
+    showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
+  });
+
+  // Update audio when the user changes the selection
+  soundSelect.addEventListener("change", () => {
+    audio = audioMap[soundSelect.value];
+    newTimer.audio = audio;
+  });
 
   // Optional debug: notify if a sound file is missing
   audio.addEventListener("error", () => {
     showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
   });
 
-  createTimer(newTimer, timerCount++);
 });
 
 // ======= PWA INSTALL LOGIC =======
