@@ -169,6 +169,29 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
   transform: translateY(0);
 }
 
+/* ---------- Bell icon animation ---------- */
+.bell {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 1.4em;
+  transform-origin: top center;
+}
+
+/* When timer finishes */
+.bell.ringing {
+  animation: bellRing 0.25s infinite ease-in-out;
+}
+
+@keyframes bellRing {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(25deg); }
+  50%  { transform: rotate(0deg); }
+  75%  { transform: rotate(-25deg); }
+  100% { transform: rotate(0deg); }
+}
+
+
+
 
 </style>
 </head>
@@ -195,12 +218,12 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
        <div class="timer-row">
       <input type="text" class="timerName" placeholder="Optional: Timer Name">
       <select class="soundSelect">
-        <option value="alarm digital.mp3">Digital Beep</option>
-        <option value="huntrix_golden.mp3">Huntrix</option>
-        <option value="Soda Pop.mp3">Soda</option>
-        <option value="timer1.mp3">Timer 1</option>
-        <option value="timer2.mp3">Timer 2</option>
-        <option value="timer3.mp3">Timer 3</option>
+        <option value="sounds/alarm digital.mp3">Digital Beep</option>
+        <option value="sounds/huntrix_golden.mp3">Huntrix</option>
+        <option value="sounds/Soda Pop.mp3">Soda</option>
+        <option value="sounds/timer1.mp3">Timer 1</option>
+        <option value="sounds/timer2.mp3">Timer 2</option>
+        <option value="sounds/timer3.mp3">Timer 3</option>
       </select>
       </div>
 
@@ -255,13 +278,12 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 
 /* ---------- Quick helpers ---------- */
 const playSilentUnlock = () => {
-  const ding = document.getElementById('dingSound');
-  if (ding) {
-    ding.play().then(() => {
-      ding.pause();
-      ding.currentTime = 0;
-    }).catch(() => {});
-  }
+  // Unlock audio on first interaction (some mobile browsers require it)
+  const ding=document.getElementById('dingSound');
+  ding.play().then(()=>{ 
+    ding.pause(); 
+    ding.currentTime=0; 
+  }).catch(()=>{});
 };
 document.body.addEventListener('click', playSilentUnlock, { once: true });
 
@@ -354,7 +376,10 @@ function createTimer(container, number){
   const soundSelect = container.querySelector(".soundSelect");
 
   const defaultName = `Timer ${number}`;
-  container.querySelector("h2").textContent = `⏲️ ${defaultName}`;
+  const title = container.querySelector("h2");
+  if (title) {
+    title.innerHTML = `⏲️ <span class="timer-label">${defaultName}</span> <span class="bell">🔔</span>`;
+  }
 
   // Per-timer audio
   const audio = new Audio(soundSelect.value);
@@ -453,6 +478,10 @@ function createTimer(container, number){
           audio.play().catch(()=>{});
           const name = timerNameInput.value.trim() || defaultName;
           showToast(`⏰ ${name} done! Check your bread!`, true, audio);
+          // Animate the bell icon
+          const bell = container.querySelector(".bell");
+          if (bell) bell.classList.add("ringing");
+
           return;
         }
       }
@@ -474,6 +503,10 @@ function createTimer(container, number){
     audio.pause();
     audio.currentTime = 0;
     audio.loop = false;
+
+      // 🛎 Stop bell animation if ringing
+    const bell = container.querySelector(".bell");
+    if (bell) bell.classList.remove("ringing");
 
     if(!resetClickedOnce){
       const name = timerNameInput.value.trim() || defaultName;
@@ -500,6 +533,12 @@ function createTimer(container, number){
       clearInterval(timer);
       audio.pause();
       audio.currentTime = 0;
+      audio.loop = false;
+
+      // 🛎 Stop bell animation if ringing
+      const bell = container.querySelector(".bell");
+      if (bell) bell.classList.remove("ringing");
+
       container.remove();
     });
   }
@@ -555,26 +594,22 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   `;
   timersWrapper.appendChild(newTimer);
 
-  // ✅ Load audio safely (cached by service worker)
+    // ✅ Each timer gets its own audio object and dropdown listener
   const soundSelect = newTimer.querySelector(".soundSelect");
-  let audio = new Audio(soundSelect.value);
+  const audio = new Audio(soundSelect.value);
+  newTimer.audio = audio; // store reference for later use
 
-  // Detect loading errors (for example if file was missing before caching)
+  soundSelect.addEventListener("change", () => {
+    audio.src = soundSelect.value;
+    audio.load();
+  });
+
+  // Optional debug: notify if a sound file is missing
   audio.addEventListener("error", () => {
     showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
   });
 
-  // Update the audio when user changes dropdown
-  soundSelect.addEventListener("change", () => {
-    audio = new Audio(soundSelect.value);
-    audio.addEventListener("error", () => {
-      showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
-    });
-    newTimer.audio = audio;
-  });
-
-  // Create the timer and attach its audio
-  createTimer(newTimer, timerCount++, audio);
+  createTimer(newTimer, timerCount++);
 });
 
 // ======= PWA INSTALL LOGIC =======
@@ -610,6 +645,25 @@ if ("serviceWorker" in navigator) {
       .register("service-worker.js")
       .then(() => console.log("✅ Service Worker Registered"))
       .catch((err) => console.log("❌ SW registration failed:", err));
+  });
+}
+
+// ✅ Pre-cache all sound files for offline use (this runs after SW is ready)
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    if (reg.active) {
+      const audioFiles = [
+        'sounds/alarm digital.mp3',
+        'sounds/huntrix_golden.mp3',
+        'sounds/Soda Pop.mp3',
+        'sounds/timer1.mp3',
+        'sounds/timer2.mp3',
+        'sounds/timer3.mp3'
+      ];
+      caches.open('timer-audio-cache').then(cache => {
+        cache.addAll(audioFiles).catch(()=>{});
+      });
+    }
   });
 }
  
