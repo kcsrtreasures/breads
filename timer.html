@@ -142,7 +142,7 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
     max-width: 55%;
   }
   .timer-row select.soundSelect {
-    max-width: 35%;
+    max-width: 40%;
   }
 }
 
@@ -250,14 +250,28 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
   <source src="alarm digital.mp3" type="audio/mpeg">
 </audio>
 
+<audio id="audio-huntrix" preload="auto" src="huntrix_golden.mp3"></audio>
+<audio id="audio-soda" preload="auto" src="Soda Pop.mp3"></audio>
+<audio id="audio-timer1" preload="auto" src="timer1.mp3"></audio>
+<audio id="audio-timer2" preload="auto" src="timer2.mp3"></audio>
+<audio id="audio-timer3" preload="auto" src="timer3.mp3"></audio>
+
 <script>
 
 
 /* ---------- Quick helpers ---------- */
 const playSilentUnlock = () => {
-  // Unlock audio on first interaction (some mobile browsers require it)
-  const ding=document.getElementById('dingSound');
-  ding.play().then(()=>{ ding.pause(); ding.currentTime=0; }).catch(()=>{});
+  const audios = [
+    document.getElementById('dingSound'),
+    document.getElementById('audio-huntrix'),
+    document.getElementById('audio-soda'),
+    document.getElementById('audio-timer1'),
+    document.getElementById('audio-timer2'),
+    document.getElementById('audio-timer3')
+  ];
+  audios.forEach(a => {
+    a.play().then(()=>{ a.pause(); a.currentTime=0; }).catch(()=>{});
+  });
 };
 document.body.addEventListener('click', playSilentUnlock, { once: true });
 
@@ -349,12 +363,24 @@ function createTimer(container, number){
   const closeBtn = container.querySelector(".closeBtn");
   const soundSelect = container.querySelector(".soundSelect");
 
+  const soundMap = {
+  "alarm digital.mp3": document.getElementById("dingSound"),
+  "huntrix_golden.mp3": document.getElementById("audio-huntrix"),
+  "Soda Pop.mp3": document.getElementById("audio-soda"),
+  "timer1.mp3": document.getElementById("audio-timer1"),
+  "timer2.mp3": document.getElementById("audio-timer2"),
+  "timer3.mp3": document.getElementById("audio-timer3"),
+  };
+
   const defaultName = `Timer ${number}`;
   container.querySelector("h2").textContent = `⏲️ ${defaultName}`;
 
-  // Per-timer audio
-  const audio = new Audio(soundSelect.value);
-  audio.preload = "auto";
+  // Inside createTimer():
+  let audio = soundMap[soundSelect.value]; // get preloaded audio
+
+  soundSelect.addEventListener("change", () => {
+    audio = soundMap[soundSelect.value];
+  });
 
   // Update header when timer name changes
   timerNameInput.addEventListener('input', () => {
@@ -553,13 +579,7 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
 
     // ✅ Each timer gets its own audio object and dropdown listener
   const soundSelect = newTimer.querySelector(".soundSelect");
-  const audio = new Audio(soundSelect.value);
-  newTimer.audio = audio; // store reference for later use
 
-  soundSelect.addEventListener("change", () => {
-    audio.src = soundSelect.value;
-    audio.load();
-  });
 
   // Optional debug: notify if a sound file is missing
   audio.addEventListener("error", () => {
