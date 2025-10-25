@@ -385,10 +385,13 @@ function createTimer(container, number){
   const audio = new Audio(soundSelect.value);
   audio.preload = "auto";
 
-  // Update header when timer name changes
+  // Update header when timer name changes (keep bell)
   timerNameInput.addEventListener('input', () => {
-    container.querySelector("h2").textContent = `⏲️ ${timerNameInput.value || defaultName}`;
+    const h2 = container.querySelector("h2");
+    const name = timerNameInput.value || defaultName;
+    h2.innerHTML = `⏲️ ${name} <span class="bell">🔔</span>`;
   });
+
 
   // Update time display from inputs or totalSeconds
   function updateDisplay(){
