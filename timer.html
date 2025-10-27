@@ -768,7 +768,7 @@ window.addEventListener("appinstalled", () => {
 
 window.addEventListener("load", () => {
   if (isStandalone()) {
-    showToast("📱 Running as installed app.");
+    // showToast("📱 Running as installed app.");
     localStorage.setItem("pwaInstalled", "true");
     if (installBtn) installBtn.style.display = "none";
   } else {
