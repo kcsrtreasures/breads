@@ -640,71 +640,86 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   createTimer(newTimer, timerCount++);
 });
 
-// ======= PWA INSTALL LOGIC =======
+// ======= PWA INSTALL LOGIC (with smart detection & toasts) =======
+
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 
-// Always show the install button
+// Always show install button (you can style it hidden by default)
 if (installBtn) installBtn.style.display = "inline-block";
 
-// Listen for install prompt event
+// Helper: detect if inside Facebook / Messenger in-app browser
+function isInAppBrowser() {
+  const ua = navigator.userAgent || navigator.vendor;
+  return /FBAN|FBAV|FB_IAB|Instagram|Line|Messenger/i.test(ua);
+}
+
+// Helper: detect if installed already
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+}
+
+// Listen for beforeinstallprompt (Chrome/Edge)
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
   if (installBtn) installBtn.style.display = "inline-block";
-  console.log("📲 beforeinstallprompt event captured");
+  showToast("📲 You can install this app anytime using the install button!");
 });
 
-// When user clicks Install button
+// Handle install button click
 if (installBtn) {
   installBtn.addEventListener("click", async () => {
-    const alreadyInstalled = localStorage.getItem("pwaInstalled") === "true";
-
-    // If already installed, ask if they want to update
-    if (alreadyInstalled) {
-      showToast("You already installed this app. Updating...");
-      // Proceed with reinstallation prompt
+    // If already installed
+    if (isStandalone()) {
+      showToast("✅ Already installed! You can open it from your home screen.");
+      return;
     }
 
+    // If inside in-app browser
+    if (isInAppBrowser()) {
+      showToast("⚠️ Installation not available in this browser. Please open in Chrome or Safari.");
+      return;
+    }
+
+    // If install prompt available
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
-        console.log("✅ User accepted PWA installation");
+        showToast("🎉 App installation started!");
         localStorage.setItem("pwaInstalled", "true");
-        showToast("✅ App installed successfully!");
       } else {
-        console.log("❌ User dismissed PWA installation");
-        showToast("Installation cancelled.");
+        showToast("❌ Installation dismissed.");
       }
       deferredPrompt = null;
     } else {
+      // Fallback: No prompt available
       showToast("📲 Already installed or browser doesn’t support manual install prompt.");
     }
   });
 }
 
-// Detect successful installation
+// When app gets installed
 window.addEventListener("appinstalled", () => {
-  console.log("✅ PWA installed");
+  showToast("✅ App successfully installed!");
   localStorage.setItem("pwaInstalled", "true");
-  showToast("✅ App installed successfully!");
+  if (installBtn) installBtn.style.display = "none";
 });
 
-// Check install state on load
+// Handle page load
 window.addEventListener("load", () => {
-  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
-  const installedFlag = localStorage.getItem("pwaInstalled") === "true";
-
-  if (isStandalone || installedFlag) {
-    console.log("📲 App is running standalone or already installed");
+  if (isStandalone()) {
     localStorage.setItem("pwaInstalled", "true");
-    showToast("App is ready to use!");
+    showToast("📱 Running as installed app.");
+    if (installBtn) installBtn.style.display = "none";
   } else {
-    console.log("⬇️ App not installed — showing install button");
-    if (installBtn) installBtn.style.display = "inline-block";
+    // Show install button if not installed
+    const installed = localStorage.getItem("pwaInstalled");
+    if (!installed && installBtn) installBtn.style.display = "inline-block";
   }
 });
+
 
 
 // ======= SERVICE WORKER REGISTER =======
