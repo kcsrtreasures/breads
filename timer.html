@@ -640,7 +640,6 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   createTimer(newTimer, timerCount++);
 });
 
-
 // ======= PWA INSTALL LOGIC (Auto-install + Update detection + Smart toasts) =======
 
 let deferredPrompt;
@@ -669,11 +668,25 @@ const autoInstall = urlParams.get("autoinstall");
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  console.log("✅ beforeinstallprompt fired");
 
   if (autoInstall === "1") {
-    // 🔥 Auto-trigger install if redirected
-    setTimeout(async () => {
-      showToast("📲 Preparing installation...");
+    showToast("📲 Preparing installation...");
+    autoTriggerInstall();
+  } else {
+    showToast("📲 You can install this app using the install button!");
+  }
+
+  if (installBtn) installBtn.style.display = "inline-block";
+});
+
+// --- Auto-trigger install with retries ---
+async function autoTriggerInstall() {
+  let retries = 0;
+  const maxRetries = 5;
+  const retryInterval = setInterval(async () => {
+    if (deferredPrompt) {
+      clearInterval(retryInterval);
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
@@ -683,13 +696,14 @@ window.addEventListener("beforeinstallprompt", (e) => {
         showToast("❌ Installation cancelled.");
       }
       deferredPrompt = null;
-    }, 1200);
-  } else {
-    showToast("📲 You can install this app using the install button!");
-  }
-
-  if (installBtn) installBtn.style.display = "inline-block";
-});
+    } else if (++retries > maxRetries) {
+      clearInterval(retryInterval);
+      showToast("⚠️ Unable to trigger install automatically. Tap 'Install' instead.");
+    } else {
+      console.log("⏳ Waiting for beforeinstallprompt event...");
+    }
+  }, 1500);
+}
 
 // --- Install button handler ---
 if (installBtn) {
@@ -706,11 +720,9 @@ if (installBtn) {
       setTimeout(() => {
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
-          // Use intent:// for Android Chrome redirection
           const intentURL = `intent://${APP_URL.replace(/^https?:\/\//, "")}?autoinstall=1#Intent;scheme=https;package=com.android.chrome;end`;
           window.location.href = intentURL;
         } else {
-          // iOS / Safari fallback
           window.open(`${APP_URL}?autoinstall=1`, "_blank");
         }
       }, 1500);
@@ -752,6 +764,12 @@ window.addEventListener("load", () => {
   } else {
     const installed = localStorage.getItem("pwaInstalled");
     if (!installed && installBtn) installBtn.style.display = "inline-block";
+  }
+
+  // If redirected before event fires
+  if (autoInstall === "1") {
+    showToast("⏳ Waiting for install prompt...");
+    autoTriggerInstall(); // keep trying
   }
 });
 
@@ -796,6 +814,7 @@ if ("serviceWorker" in navigator) {
       .catch((err) => console.log("❌ SW registration failed:", err));
   });
 }
+
 
 
  
