@@ -1,22 +1,19 @@
 const CACHE_NAME = 'baking-timer-v2';
 const urlsToCache = [
-  '/',
   '/breads/index.html',
   '/breads/styles.css',
   '/breads/scripts.js',
   '/breads/manifest.json',
   '/breads/breadroll.png',
   // Cache all your sounds
-  '/breads/sounds/alarm digital.mp3',
+  '/breads/sounds/alarm-digital.mp3',
   '/breads/sounds/huntrix_golden.mp3',
-  '/breads/sounds/Soda Pop.mp3',
+  '/breads/sounds/SodaPop.mp3',
   '/breads/sounds/timer1.mp3',
   '/breads/sounds/timer2.mp3',
   '/breads/sounds/timer3.mp3'
 ];
 
-// Activate immediately after install (optional but recommended)
-self.skipWaiting();
 
 // Install and cache assets
 self.addEventListener('install', (event) => {
@@ -24,9 +21,10 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME).then((cache) => {
       console.log('📦 Caching app shell & sounds');
       return cache.addAll(urlsToCache);
-    })
+    }).then(() => self.skipWaiting())
   );
 });
+
 
 // Serve cached content when offline
 self.addEventListener('fetch', (event) => {
@@ -58,6 +56,7 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
+
