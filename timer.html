@@ -152,10 +152,10 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 .toast {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  right: 10px;
   background: #6b4b2c;
   color: #fff;
-  padding: 12px 18px;
+  padding: 6px 9px;
   border-radius: 8px;
   box-shadow: 0 3px 8px rgba(0,0,0,0.3);
   opacity: 0;
@@ -163,6 +163,7 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
   transition: opacity 0.4s, transform 0.4s;
   z-index: 9999;
   font-weight: 500;
+  font-size: small;
 }
 .toast.show {
   opacity: 1;
@@ -275,6 +276,23 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 
 <script>
 
+// ✅ Preload all sound files once
+const soundPaths = [
+  "sounds/alarm digital.mp3",
+  "sounds/huntrix_golden.mp3",
+  "sounds/Soda Pop.mp3",
+  "sounds/timer1.mp3",
+  "sounds/timer2.mp3",
+  "sounds/timer3.mp3"
+];
+
+const preloadedAudios = {};
+soundPaths.forEach(path => {
+  const audio = new Audio(path);
+  audio.preload = "auto";
+  preloadedAudios[path] = audio;
+});
+
 
 /* ---------- Quick helpers ---------- */
 const playSilentUnlock = () => {
@@ -355,9 +373,6 @@ function showToast(msg, withStopButton = false, audio = null) {
 
 
 
-
-
-
 function createTimer(container, number){
   let timer = null;
   let totalSeconds = 0;
@@ -375,23 +390,36 @@ function createTimer(container, number){
   const closeBtn = container.querySelector(".closeBtn");
   const soundSelect = container.querySelector(".soundSelect");
 
+  // label/title + bell in header
   const defaultName = `Timer ${number}`;
   const title = container.querySelector("h2");
   if (title) {
     title.innerHTML = `⏲️ <span class="timer-label">${defaultName}</span> <span class="bell">🔔</span>`;
   }
 
-  // Per-timer audio
-  const audio = new Audio(soundSelect.value);
-  audio.preload = "auto";
+  // Keep the chosen sound src in a variable. We'll create a fresh Audio when playing.
+  let selectedSound = soundSelect ? soundSelect.value : null;
+
+  // reference to the currently-playing alarm Audio for this timer (if any)
+  let alarmAudio = null;
 
   // Update header when timer name changes (keep bell)
   timerNameInput.addEventListener('input', () => {
     const h2 = container.querySelector("h2");
     const name = timerNameInput.value || defaultName;
-    h2.innerHTML = `⏲️ ${name} <span class="bell">🔔</span>`;
+    if (h2) h2.innerHTML = `⏲️ ${name} <span class="bell">🔔</span>`;
   });
 
+  // Update selected sound when user changes dropdown
+  if (soundSelect) {
+    soundSelect.addEventListener('change', () => {
+      selectedSound = soundSelect.value;
+      // optional: warm-up preload using existing preloadedAudios if present
+      if (preloadedAudios && preloadedAudios[selectedSound]) {
+        // nothing else needed — file is cached/preloaded
+      }
+    });
+  }
 
   // Update time display from inputs or totalSeconds
   function updateDisplay(){
@@ -402,28 +430,34 @@ function createTimer(container, number){
       dispM = Math.floor((totalSeconds % 3600) / 60);
       dispS = totalSeconds % 60;
     } else {
-      const h=parseInt(hoursInput.value)||0;
-      const m=parseInt(minutesInput.value)||0;
-      const s=parseInt(secondsInput.value)||0;
+      const h = parseInt(hoursInput.value) || 0;
+      const m = parseInt(minutesInput.value) || 0;
+      const s = parseInt(secondsInput.value) || 0;
       dispH = h; dispM = m; dispS = s;
     }
 
-    timeDisplay.textContent=`${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
+    timeDisplay.textContent = `${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
 
     // Disable decrement buttons if at min
     container.querySelectorAll(".time-input").forEach(ti=>{
       const input = ti.querySelector("input");
       const decBtn = ti.querySelector(".decBtn");
-      decBtn.disabled = parseInt(input.value) <= parseInt(input.min);
+      if (input && decBtn) decBtn.disabled = parseInt(input.value) <= parseInt(input.min);
     });
   }
 
-  // Sound select listener
-  if(soundSelect){
-    soundSelect.addEventListener('change', ()=> {
-      audio.src = soundSelect.value;
-      audio.load();
-    });
+  // stop and cleanup alarm audio for this timer
+  function stopAlarmAudio() {
+    if (alarmAudio) {
+      try {
+        alarmAudio.pause();
+        alarmAudio.currentTime = 0;
+        alarmAudio.loop = false;
+      } catch(e) { /* ignore */ }
+      alarmAudio = null;
+    }
+    const bell = container.querySelector(".bell");
+    if (bell) bell.classList.remove("ringing");
   }
 
   // Increment/decrement buttons
@@ -435,7 +469,7 @@ function createTimer(container, number){
     const max = parseInt(input.max);
 
     const change = () => {
-      let val = parseInt(input.value)||0;
+      let val = parseInt(input.value) || 0;
       val += step;
       val = Math.min(max, Math.max(min, val));
       input.value = val;
@@ -476,11 +510,21 @@ function createTimer(container, number){
         } else {
           clearInterval(timer);
           running = false;
-          audio.currentTime = 0;
-          audio.loop = true;
-          audio.play().catch(()=>{});
+
+          // Create a fresh Audio instance at play time so multiple timers can play simultaneously.
+          try {
+            alarmAudio = new Audio(selectedSound || (soundSelect ? soundSelect.value : ""));
+            alarmAudio.preload = "auto";
+            alarmAudio.loop = true;
+            alarmAudio.currentTime = 0;
+            alarmAudio.play().catch(()=>{ /* ignore blocked play if any */ });
+          } catch(e) {
+            alarmAudio = null;
+          }
+
           const name = timerNameInput.value.trim() || defaultName;
-          showToast(`⏰ ${name} done! Check your bread!`, true, audio);
+          showToast(`⏰ ${name} done! Check your bread!`, true, alarmAudio);
+
           // Animate the bell icon
           const bell = container.querySelector(".bell");
           if (bell) bell.classList.add("ringing");
@@ -503,13 +547,9 @@ function createTimer(container, number){
   resetBtn.addEventListener("click", () => {
     clearInterval(timer);
     running = false;
-    audio.pause();
-    audio.currentTime = 0;
-    audio.loop = false;
 
-      // 🛎 Stop bell animation if ringing
-    const bell = container.querySelector(".bell");
-    if (bell) bell.classList.remove("ringing");
+    // stop the alarmSound and bell immediately
+    stopAlarmAudio();
 
     if(!resetClickedOnce){
       const name = timerNameInput.value.trim() || defaultName;
@@ -534,14 +574,11 @@ function createTimer(container, number){
     closeBtn.addEventListener("click", () => {
       running=false;
       clearInterval(timer);
-      audio.pause();
-      audio.currentTime = 0;
-      audio.loop = false;
 
-      // 🛎 Stop bell animation if ringing
-      const bell = container.querySelector(".bell");
-      if (bell) bell.classList.remove("ringing");
+      // stop alarm and bell
+      stopAlarmAudio();
 
+      // remove container from DOM
       container.remove();
     });
   }
@@ -549,6 +586,9 @@ function createTimer(container, number){
   // Initial display
   updateDisplay();
 }
+
+
+
 
 
 document.querySelectorAll(".timer-container").forEach((t)=>createTimer(t, timerCount++));
@@ -597,21 +637,6 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   `;
   timersWrapper.appendChild(newTimer);
 
-    // ✅ Each timer gets its own audio object and dropdown listener
-  const soundSelect = newTimer.querySelector(".soundSelect");
-  const audio = new Audio(soundSelect.value);
-  newTimer.audio = audio; // store reference for later use
-
-  soundSelect.addEventListener("change", () => {
-    audio.src = soundSelect.value;
-    audio.load();
-  });
-
-  // Optional debug: notify if a sound file is missing
-  audio.addEventListener("error", () => {
-    showToast(`⚠️ Could not load sound: ${soundSelect.value}`);
-  });
-
   createTimer(newTimer, timerCount++);
 });
 
@@ -619,56 +644,93 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 
+// Always show the install button
+if (installBtn) installBtn.style.display = "inline-block";
+
+// Listen for install prompt event
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBtn.style.display = "inline-block"; // Show button when ready
+  if (installBtn) installBtn.style.display = "inline-block";
+  console.log("📲 beforeinstallprompt event captured");
 });
 
-installBtn.addEventListener("click", async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === "accepted") {
-    console.log("✅ App installed");
+// When user clicks Install button
+if (installBtn) {
+  installBtn.addEventListener("click", async () => {
+    const alreadyInstalled = localStorage.getItem("pwaInstalled") === "true";
+
+    // If already installed, ask if they want to update
+    if (alreadyInstalled) {
+      showToast("You already installed this app. Updating...");
+      // Proceed with reinstallation prompt
+    }
+
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        console.log("✅ User accepted PWA installation");
+        localStorage.setItem("pwaInstalled", "true");
+        showToast("✅ App installed successfully!");
+      } else {
+        console.log("❌ User dismissed PWA installation");
+        showToast("Installation cancelled.");
+      }
+      deferredPrompt = null;
+    } else {
+      showToast("📲 Already installed or browser doesn’t support manual install prompt.");
+    }
+  });
+}
+
+// Detect successful installation
+window.addEventListener("appinstalled", () => {
+  console.log("✅ PWA installed");
+  localStorage.setItem("pwaInstalled", "true");
+  showToast("✅ App installed successfully!");
+});
+
+// Check install state on load
+window.addEventListener("load", () => {
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches;
+  const installedFlag = localStorage.getItem("pwaInstalled") === "true";
+
+  if (isStandalone || installedFlag) {
+    console.log("📲 App is running standalone or already installed");
+    localStorage.setItem("pwaInstalled", "true");
+    showToast("App is ready to use!");
   } else {
-    console.log("❌ Installation dismissed");
+    console.log("⬇️ App not installed — showing install button");
+    if (installBtn) installBtn.style.display = "inline-block";
   }
-  deferredPrompt = null;
-  installBtn.style.display = "none";
 });
 
 
-
-
-// ======= REGISTER SERVICE WORKER =======
+// ======= SERVICE WORKER REGISTER =======
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("service-worker.js")
-      .then(() => console.log("✅ Service Worker Registered"))
+      .then((reg) => {
+        console.log("✅ Service Worker registered:", reg.scope);
+
+        // ✅ Pre-cache all sound files for offline use
+        caches.open("timer-audio-cache").then((cache) => {
+          cache.addAll([
+            "sounds/alarm digital.mp3",
+            "sounds/huntrix_golden.mp3",
+            "sounds/Soda Pop.mp3",
+            "sounds/timer1.mp3",
+            "sounds/timer2.mp3",
+            "sounds/timer3.mp3"
+          ]).catch(() => {});
+        });
+      })
       .catch((err) => console.log("❌ SW registration failed:", err));
   });
 }
 
-// ✅ Pre-cache all sound files for offline use (this runs after SW is ready)
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.ready.then(reg => {
-    if (reg.active) {
-      const audioFiles = [
-        'sounds/alarm digital.mp3',
-        'sounds/huntrix_golden.mp3',
-        'sounds/Soda Pop.mp3',
-        'sounds/timer1.mp3',
-        'sounds/timer2.mp3',
-        'sounds/timer3.mp3'
-      ];
-      caches.open('timer-audio-cache').then(cache => {
-        cache.addAll(audioFiles).catch(()=>{});
-      });
-    }
-  });
-}
  
 </script>
 </body>
