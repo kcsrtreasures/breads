@@ -648,11 +648,22 @@ const APP_URL = "https://kcsrtreasures.github.io/breads/timer.html";
 
 if (installBtn) installBtn.style.display = "inline-block";
 
-// Detect in-app browsers
 function isInAppBrowser() {
-  const ua = navigator.userAgent || navigator.vendor;
-  return /FBAN|FBAV|FB_IAB|Instagram|Line|Messenger/i.test(ua);
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  return /FBAN|FBAV|Instagram|Messenger/i.test(ua);
 }
+
+if (isInAppBrowser()) {
+  showToast("⚠️ Please open this page in Chrome or Safari to install the app.");
+  const openBtn = document.createElement("button");
+  openBtn.textContent = "Open in Browser";
+  openBtn.className = "installButton";
+  openBtn.onclick = () => {
+    window.location.href = "googlechrome://navigate?url=https://kcsrtreasures.github.io/breads/timer.html";
+  };
+  document.body.appendChild(openBtn);
+}
+
 
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
