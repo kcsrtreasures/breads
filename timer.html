@@ -640,31 +640,27 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   createTimer(newTimer, timerCount++);
 });
 
-// ======= PWA INSTALL LOGIC (Auto-install + Update detection + Smart toasts) =======
+// ======= PWA INSTALL LOGIC (Robust auto-install + fallback) =======
 
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 const APP_URL = "https://kcsrtreasures.github.io/breads/timer.html";
 
-// Always display the install button (for visibility)
 if (installBtn) installBtn.style.display = "inline-block";
 
-// Detect Facebook / Messenger / Instagram in-app browsers
+// Detect in-app browsers
 function isInAppBrowser() {
   const ua = navigator.userAgent || navigator.vendor;
   return /FBAN|FBAV|FB_IAB|Instagram|Line|Messenger/i.test(ua);
 }
 
-// Detect if PWA is already installed
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 }
 
-// Check if redirected for auto-install
 const urlParams = new URLSearchParams(window.location.search);
 const autoInstall = urlParams.get("autoinstall");
 
-// --- Capture install prompt event ---
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
@@ -680,13 +676,12 @@ window.addEventListener("beforeinstallprompt", (e) => {
   if (installBtn) installBtn.style.display = "inline-block";
 });
 
-// --- Auto-trigger install with retries ---
 async function autoTriggerInstall() {
-  let retries = 0;
-  const maxRetries = 5;
-  const retryInterval = setInterval(async () => {
+  let waited = 0;
+  const interval = setInterval(async () => {
     if (deferredPrompt) {
-      clearInterval(retryInterval);
+      clearInterval(interval);
+      showToast("📲 Prompting installation...");
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
@@ -696,27 +691,35 @@ async function autoTriggerInstall() {
         showToast("❌ Installation cancelled.");
       }
       deferredPrompt = null;
-    } else if (++retries > maxRetries) {
-      clearInterval(retryInterval);
-      showToast("⚠️ Unable to trigger install automatically. Tap 'Install' instead.");
+    } else if (++waited > 5) {
+      clearInterval(interval);
+      showManualInstallGuide();
     } else {
-      console.log("⏳ Waiting for beforeinstallprompt event...");
+      console.log("⏳ Waiting for beforeinstallprompt...");
     }
   }, 1500);
 }
 
-// --- Install button handler ---
+// 🧠 Guide users if auto-install doesn’t appear
+function showManualInstallGuide() {
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  if (isAndroid) {
+    showToast("📖 Tap ⋮ (three dots) → 'Add to Home screen' to install manually.");
+  } else {
+    showToast("📖 Tap Share → 'Add to Home Screen' to install this app.");
+  }
+}
+
+// Install button
 if (installBtn) {
   installBtn.addEventListener("click", async () => {
-    // ✅ Case 1: Already installed
     if (isStandalone()) {
       showToast("✅ Already installed! Open it from your home screen.");
       return;
     }
 
-    // ✅ Case 2: Inside Facebook / IG / Messenger
     if (isInAppBrowser()) {
-      showToast("⚠️ Opening in your browser for installation...");
+      showToast("⚠️ Opening Chrome for installation...");
       setTimeout(() => {
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
@@ -725,11 +728,10 @@ if (installBtn) {
         } else {
           window.open(`${APP_URL}?autoinstall=1`, "_blank");
         }
-      }, 1500);
+      }, 1200);
       return;
     }
 
-    // ✅ Case 3: Normal browser install flow
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -743,19 +745,16 @@ if (installBtn) {
       return;
     }
 
-    // ✅ Case 4: Unsupported browser
-    showToast("📲 Installation not supported in this browser.");
+    showManualInstallGuide();
   });
 }
 
-// --- When app is installed ---
 window.addEventListener("appinstalled", () => {
   showToast("✅ App installed successfully!");
   localStorage.setItem("pwaInstalled", "true");
   if (installBtn) installBtn.style.display = "none";
 });
 
-// --- On load: adjust button + detect updates ---
 window.addEventListener("load", () => {
   if (isStandalone()) {
     showToast("📱 Running as installed app.");
@@ -766,10 +765,9 @@ window.addEventListener("load", () => {
     if (!installed && installBtn) installBtn.style.display = "inline-block";
   }
 
-  // If redirected before event fires
   if (autoInstall === "1") {
     showToast("⏳ Waiting for install prompt...");
-    autoTriggerInstall(); // keep trying
+    autoTriggerInstall();
   }
 });
 
@@ -780,8 +778,6 @@ if ("serviceWorker" in navigator) {
       .register("service-worker.js")
       .then((reg) => {
         console.log("✅ Service Worker registered:", reg.scope);
-
-        // --- Detect service worker updates ---
         reg.onupdatefound = () => {
           const newSW = reg.installing;
           if (newSW) {
@@ -793,7 +789,6 @@ if ("serviceWorker" in navigator) {
           }
         };
 
-        // --- Pre-cache sounds manually to ensure offline playback ---
         caches.open("timer-audio-cache").then((cache) => {
           cache.addAll([
             '/breads/timer.html',
