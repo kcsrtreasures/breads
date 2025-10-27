@@ -682,9 +682,15 @@ if (installBtn) {
     // ✅ Case 2: If opened inside Facebook / Messenger / IG
     if (isInAppBrowser()) {
       showToast("⚠️ Opening in your browser for installation...");
-      // Redirect to open the app in default browser (Chrome/Safari)
+      // Force open in Chrome (Android) or fallback to Safari
       setTimeout(() => {
-        window.open(APP_URL, "_blank"); // opens browser outside FB/IG
+        const appUrl = APP_URL;
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+          window.location.href = `intent://${appUrl.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
+        } else {
+          window.open(appUrl, "_blank");
+        }
       }, 1500);
       return;
     }
@@ -740,12 +746,19 @@ if ("serviceWorker" in navigator) {
         // ✅ Pre-cache all sound files for offline use
         caches.open("timer-audio-cache").then((cache) => {
           cache.addAll([
-            "sounds/alarm digital.mp3",
-            "sounds/huntrix_golden.mp3",
-            "sounds/Soda Pop.mp3",
-            "sounds/timer1.mp3",
-            "sounds/timer2.mp3",
-            "sounds/timer3.mp3"
+            '/',
+            '/breads/index.html',
+            '/breads/styles.css',
+            '/breads/scripts.js',
+            '/breads/manifest.json',
+            '/breads/breadroll.png',
+            // Cache all your sounds
+            '/breads/sounds/alarm digital.mp3',
+            '/breads/sounds/huntrix_golden.mp3',
+            '/breads/sounds/Soda Pop.mp3',
+            '/breads/sounds/timer1.mp3',
+            '/breads/sounds/timer2.mp3',
+            '/breads/sounds/timer3.mp3'
           ]).catch(() => {});
         });
       })

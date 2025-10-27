@@ -1,18 +1,18 @@
 const CACHE_NAME = 'baking-timer-v2';
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/styles.css',
-  '/scripts.js',
-  '/manifest.json',
-  '/breadroll.png',
+  '/breads/index.html',
+  '/breads/styles.css',
+  '/breads/scripts.js',
+  '/breads/manifest.json',
+  '/breads/breadroll.png',
   // Cache all your sounds
-  '/sounds/alarm digital.mp3',
-  '/sounds/huntrix_golden.mp3',
-  '/sounds/Soda Pop.mp3',
-  '/sounds/timer1.mp3',
-  '/sounds/timer2.mp3',
-  '/sounds/timer3.mp3'
+  '/breads/sounds/alarm digital.mp3',
+  '/breads/sounds/huntrix_golden.mp3',
+  '/breads/sounds/Soda Pop.mp3',
+  '/breads/sounds/timer1.mp3',
+  '/breads/sounds/timer2.mp3',
+  '/breads/sounds/timer3.mp3'
 ];
 
 // Activate immediately after install (optional but recommended)
