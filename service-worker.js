@@ -6,7 +6,7 @@ const urlsToCache = [
   '/breads/manifest.json',
   '/breads/breadroll.png',
   // Cache all your sounds
-  '/breads/sounds/alarm-digital.mp3',
+  '/breads/sounds/alarmdigital.mp3',
   '/breads/sounds/huntrix_golden.mp3',
   '/breads/sounds/SodaPop.mp3',
   '/breads/sounds/timer1.mp3',
