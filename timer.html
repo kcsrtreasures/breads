@@ -640,81 +640,88 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   createTimer(newTimer, timerCount++);
 });
 
-// ======= PWA INSTALL LOGIC (with smart detection & toasts) =======
+
+// ======= PWA INSTALL LOGIC (with redirect + smart toasts) =======
 
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
+const APP_URL = "https://kcsrtreasures.github.io/breads/timer.html"; // your app’s URL
 
-// Always show install button (you can style it hidden by default)
+// Always show install button (style can default to hidden)
 if (installBtn) installBtn.style.display = "inline-block";
 
-// Helper: detect if inside Facebook / Messenger in-app browser
+// Detect if in Facebook / Messenger / Instagram in-app browser
 function isInAppBrowser() {
   const ua = navigator.userAgent || navigator.vendor;
   return /FBAN|FBAV|FB_IAB|Instagram|Line|Messenger/i.test(ua);
 }
 
-// Helper: detect if installed already
+// Detect if app already installed
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 }
 
-// Listen for beforeinstallprompt (Chrome/Edge)
+// Handle browser prompt when available
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
+  showToast("📲 You can install this app using the install button!");
   if (installBtn) installBtn.style.display = "inline-block";
-  showToast("📲 You can install this app anytime using the install button!");
 });
 
 // Handle install button click
 if (installBtn) {
   installBtn.addEventListener("click", async () => {
-    // If already installed
+
+    // ✅ Case 1: If already installed
     if (isStandalone()) {
-      showToast("✅ Already installed! You can open it from your home screen.");
+      showToast("✅ Already installed! Open from your home screen.");
       return;
     }
 
-    // If inside in-app browser
+    // ✅ Case 2: If opened inside Facebook / Messenger / IG
     if (isInAppBrowser()) {
-      showToast("⚠️ Installation not available in this browser. Please open in Chrome or Safari.");
+      showToast("⚠️ Opening in your browser for installation...");
+      // Redirect to open the app in default browser (Chrome/Safari)
+      setTimeout(() => {
+        window.open(APP_URL, "_blank"); // opens browser outside FB/IG
+      }, 1500);
       return;
     }
 
-    // If install prompt available
+    // ✅ Case 3: If Chrome/Edge/Safari supports install prompt
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
-        showToast("🎉 App installation started!");
+        showToast("🎉 Installation started!");
         localStorage.setItem("pwaInstalled", "true");
       } else {
         showToast("❌ Installation dismissed.");
       }
       deferredPrompt = null;
-    } else {
-      // Fallback: No prompt available
-      showToast("📲 Already installed or browser doesn’t support manual install prompt.");
+      return;
     }
+
+    // ✅ Case 4: Fallback — unsupported browser
+    showToast("📲 Installation not supported in this browser.");
   });
 }
 
 // When app gets installed
 window.addEventListener("appinstalled", () => {
-  showToast("✅ App successfully installed!");
+  showToast("✅ App installed successfully!");
   localStorage.setItem("pwaInstalled", "true");
   if (installBtn) installBtn.style.display = "none";
 });
 
-// Handle page load
+// Handle page load to adjust button visibility
 window.addEventListener("load", () => {
   if (isStandalone()) {
-    localStorage.setItem("pwaInstalled", "true");
     showToast("📱 Running as installed app.");
+    localStorage.setItem("pwaInstalled", "true");
     if (installBtn) installBtn.style.display = "none";
   } else {
-    // Show install button if not installed
     const installed = localStorage.getItem("pwaInstalled");
     if (!installed && installBtn) installBtn.style.display = "inline-block";
   }
