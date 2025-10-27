@@ -692,7 +692,7 @@ async function autoTriggerInstall() {
   const interval = setInterval(async () => {
     if (deferredPrompt) {
       clearInterval(interval);
-      showToast("📲 Prompting installation...");
+      // showToast("📲 Prompting installation...");
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
