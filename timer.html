@@ -761,7 +761,7 @@ if (installBtn) {
 }
 
 window.addEventListener("appinstalled", () => {
-  showToast("✅ App installed successfully!");
+  // showToast("✅ App installed successfully!");
   localStorage.setItem("pwaInstalled", "true");
   if (installBtn) installBtn.style.display = "none";
 });
