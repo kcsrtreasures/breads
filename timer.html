@@ -661,11 +661,33 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 }
 
-// Handle browser prompt when available
+// Check if redirected from in-app
+const urlParams = new URLSearchParams(window.location.search);
+const autoInstall = urlParams.get("autoinstall");
+
+// Capture install prompt
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  showToast("📲 You can install this app using the install button!");
+
+  if (autoInstall === "1") {
+    // 🔥 Automatically trigger install if redirected here
+    setTimeout(async () => {
+      showToast("📲 Preparing installation...");
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        showToast("🎉 App installation started!");
+        localStorage.setItem("pwaInstalled", "true");
+      } else {
+        showToast("❌ Installation cancelled.");
+      }
+      deferredPrompt = null;
+    }, 1200);
+  } else {
+    showToast("📲 You can install this app using the install button!");
+  }
+
   if (installBtn) installBtn.style.display = "inline-block";
 });
 
@@ -679,17 +701,16 @@ if (installBtn) {
       return;
     }
 
-    // ✅ Case 2: If opened inside Facebook / Messenger / IG
     if (isInAppBrowser()) {
       showToast("⚠️ Opening in your browser for installation...");
-      // Force open in Chrome (Android) or fallback to Safari
       setTimeout(() => {
-        const appUrl = APP_URL;
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
-          window.location.href = `intent://${appUrl.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
+          // Redirect with ?autoinstall=1 so Chrome auto-prompts
+          window.location.href = `intent://${APP_URL.replace(/^https?:\/\//, "")}?autoinstall=1#Intent;scheme=https;package=com.android.chrome;end`;
         } else {
-          window.open(appUrl, "_blank");
+          // iOS or desktop Safari fallback
+          window.open(`${APP_URL}?autoinstall=1`, "_blank");
         }
       }, 1500);
       return;
