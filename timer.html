@@ -669,13 +669,13 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   createTimer(newTimer, timerCount++);
 });
 
-// ======= PWA INSTALL LOGIC (Redirect to Chrome + manual install) =======
+// ======= PWA INSTALL LOGIC (Auto-install or redirect to Chrome) =======
 
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 const APP_URL = "https://kcsrtreasures.github.io/breads/timer.html";
 
-// Always show install button (for update/reinstall)
+// Always show the install button (for manual update/reinstall)
 if (installBtn) installBtn.style.display = "inline-block";
 
 // Detect in-app browsers (Facebook, Messenger, Instagram)
@@ -684,102 +684,80 @@ function isInAppBrowser() {
   return /FBAN|FBAV|Instagram|Messenger/i.test(ua);
 }
 
-// Detect standalone mode (already installed)
+// Detect standalone (already installed)
 function isStandalone() {
-  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    navigator.standalone === true
+  );
 }
 
-// Show manual install guide (only when needed)
-function showManualInstallGuide() {
-  const isAndroid = /Android/i.test(navigator.userAgent);
-  if (isAndroid) {
-    showToast("📖 Tap ⋮ (three dots) → 'Add to Home screen' to install manually.");
-  } else {
-    showToast("📖 Tap Share → 'Add to Home Screen' to install manually.");
-  }
-}
-
-// Catch Chrome’s beforeinstallprompt
+// Catch the Chrome install prompt
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log("✅ beforeinstallprompt fired");
-  if (installBtn) installBtn.style.display = "inline-block";
-  showToast("📲 You can install or update this app anytime using the install button!");
+  console.log("✅ beforeinstallprompt available");
+  if (installBtn) installBtn.disabled = false;
 });
 
 // Handle install button click
 if (installBtn) {
   installBtn.addEventListener("click", async () => {
-    // If already installed
+    // Already installed → act as an update checker
     if (isStandalone()) {
-      showToast("✅ App is already installed! Reinstalling or updating...");
-      // Force reinstall/update if available
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === "accepted") {
-          showToast("🎉 Update started!");
-        } else {
-          showToast("❌ Update canceled.");
-        }
-        deferredPrompt = null;
-      } else {
-        showToast("🔄 If an update is available, it will auto-refresh soon.");
+      showToast("✅ App is already installed. Checking for updates...");
+      if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "CHECK_FOR_UPDATE" });
       }
       return;
     }
 
-    // If inside in-app browser (Facebook / Instagram / Messenger)
+    // Inside Facebook/Messenger → redirect to Chrome
     if (isInAppBrowser()) {
-      showToast("⚠️ Opening Chrome for installation...");
+      showToast("⚠️ Redirecting to Chrome for installation...");
       setTimeout(() => {
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
-          // Open in Chrome using intent URL
           const intentURL = `intent://${APP_URL.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
           window.location.href = intentURL;
         } else {
-          // For iOS: open in Safari
-          window.open(APP_URL, "_blank");
+          window.open(APP_URL, "_blank"); // iOS → Safari
         }
-      }, 1200);
+      }, 800);
       return;
     }
 
-    // If install prompt available
+    // Normal Chrome install flow
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === "accepted") {
-        showToast("🎉 Installation started!");
-        localStorage.setItem("pwaInstalled", "true");
+        showToast("🎉 App installing...");
       } else {
-        showToast("❌ Installation dismissed.");
+        showToast("ℹ️ Installation canceled.");
       }
       deferredPrompt = null;
       return;
     }
 
-    // Otherwise show manual instructions
-    showManualInstallGuide();
+    // Fallback (Safari with no prompt): try open directly, no annoying message
+    window.location.href = APP_URL;
   });
 }
 
-// When app gets installed
+// Listen for successful install
 window.addEventListener("appinstalled", () => {
   showToast("✅ App installed successfully!");
   localStorage.setItem("pwaInstalled", "true");
-  if (installBtn) installBtn.style.display = "inline-block"; // Keep visible for updates
+  if (installBtn) installBtn.style.display = "inline-block"; // Keep visible for update trigger
 });
 
-// When page loads, make sure install button stays visible
+// On load, ensure button remains visible
 window.addEventListener("load", () => {
-  if (isStandalone()) {
-    localStorage.setItem("pwaInstalled", "true");
-  }
-  if (installBtn) installBtn.style.display = "inline-block"; // Always visible
+  if (isStandalone()) localStorage.setItem("pwaInstalled", "true");
+  if (installBtn) installBtn.style.display = "inline-block";
 });
+
 
 
 
