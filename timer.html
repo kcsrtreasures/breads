@@ -675,6 +675,7 @@ let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 const APP_URL = "https://kcsrtreasures.github.io/breads/timer.html";
 
+// Always show install button (for update/reinstall)
 if (installBtn) installBtn.style.display = "inline-block";
 
 // Detect in-app browsers (Facebook, Messenger, Instagram)
@@ -688,23 +689,23 @@ function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
 }
 
-// Show user-friendly toast instructions
+// Show manual install guide (only when needed)
 function showManualInstallGuide() {
   const isAndroid = /Android/i.test(navigator.userAgent);
   if (isAndroid) {
     showToast("📖 Tap ⋮ (three dots) → 'Add to Home screen' to install manually.");
   } else {
-    showToast("📖 Tap Share → 'Add to Home Screen' to install this app.");
+    showToast("📖 Tap Share → 'Add to Home Screen' to install manually.");
   }
 }
 
-// Handle beforeinstallprompt event
+// Catch Chrome’s beforeinstallprompt
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
   console.log("✅ beforeinstallprompt fired");
   if (installBtn) installBtn.style.display = "inline-block";
-  showToast("📲 You can install this app using the install button!");
+  showToast("📲 You can install or update this app anytime using the install button!");
 });
 
 // Handle install button click
@@ -712,17 +713,30 @@ if (installBtn) {
   installBtn.addEventListener("click", async () => {
     // If already installed
     if (isStandalone()) {
-      showToast("✅ Already installed! Open it from your home screen.");
+      showToast("✅ App is already installed! Reinstalling or updating...");
+      // Force reinstall/update if available
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          showToast("🎉 Update started!");
+        } else {
+          showToast("❌ Update canceled.");
+        }
+        deferredPrompt = null;
+      } else {
+        showToast("🔄 If an update is available, it will auto-refresh soon.");
+      }
       return;
     }
 
-    // If user is inside Facebook / Messenger / Instagram browser
+    // If inside in-app browser (Facebook / Instagram / Messenger)
     if (isInAppBrowser()) {
       showToast("⚠️ Opening Chrome for installation...");
       setTimeout(() => {
         const isAndroid = /Android/i.test(navigator.userAgent);
         if (isAndroid) {
-          // Open in Chrome directly
+          // Open in Chrome using intent URL
           const intentURL = `intent://${APP_URL.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
           window.location.href = intentURL;
         } else {
@@ -733,7 +747,7 @@ if (installBtn) {
       return;
     }
 
-    // If the install prompt is available in Chrome/Safari
+    // If install prompt available
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -747,28 +761,26 @@ if (installBtn) {
       return;
     }
 
-    // If nothing else, show manual guide
+    // Otherwise show manual instructions
     showManualInstallGuide();
   });
 }
 
 // When app gets installed
 window.addEventListener("appinstalled", () => {
-  // showToast("✅ App installed successfully!");
+  showToast("✅ App installed successfully!");
   localStorage.setItem("pwaInstalled", "true");
-  if (installBtn) installBtn.style.display = "none";
+  if (installBtn) installBtn.style.display = "inline-block"; // Keep visible for updates
 });
 
-// When the page loads
+// When page loads, make sure install button stays visible
 window.addEventListener("load", () => {
   if (isStandalone()) {
     localStorage.setItem("pwaInstalled", "true");
-    if (installBtn) installBtn.style.display = "none";
-  } else {
-    const installed = localStorage.getItem("pwaInstalled");
-    if (!installed && installBtn) installBtn.style.display = "inline-block";
   }
+  if (installBtn) installBtn.style.display = "inline-block"; // Always visible
 });
+
 
 
 // ======= SERVICE WORKER REGISTER =======
