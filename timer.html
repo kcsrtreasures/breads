@@ -669,6 +669,41 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
   createTimer(newTimer, timerCount++);
 });
 
+
+// ======= ENSURE SOUNDS ARE FULLY CACHED (EVEN OFFLINE) =======
+async function ensureOfflineSounds() {
+  const soundUrls = [
+    '/breads/sounds/alarmdigital.mp3',
+    '/breads/sounds/huntrix_golden.mp3',
+    '/breads/sounds/SodaPop.mp3',
+    '/breads/sounds/timer1.mp3',
+    '/breads/sounds/timer2.mp3',
+    '/breads/sounds/timer3.mp3'
+  ];
+
+  const cache = await caches.open('baking-timer-v5');
+  for (const url of soundUrls) {
+    const match = await cache.match(url);
+    if (!match) {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          await cache.put(url, response.clone());
+          showToast(" 🎵 Saving sounds... ");
+          console.log('🎵 Cached sound:', url);
+        }
+      } catch (err) {
+        console.warn('⚠️ Failed to cache sound:', url, err);
+      }
+    }
+  }
+}
+
+// Run once at startup (when online)
+if (navigator.onLine) {
+  ensureOfflineSounds();
+}
+
 // ======= PWA INSTALL LOGIC (Auto-install or redirect to Chrome) =======
 
 let deferredPrompt;
