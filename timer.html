@@ -670,7 +670,8 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
 });
 
 
-// ======= ENSURE SOUNDS ARE FULLY CACHED (EVEN OFFLINE) =======
+
+// ======= ENSURE SOUNDS ARE FULLY CACHED =======
 async function ensureOfflineSounds() {
   const soundUrls = [
     '/breads/sounds/alarmdigital.mp3',
@@ -681,28 +682,29 @@ async function ensureOfflineSounds() {
     '/breads/sounds/timer3.mp3'
   ];
 
-  const cache = await caches.open('baking-timer-v5');
-  for (const url of soundUrls) {
-    const match = await cache.match(url);
-    if (!match) {
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          await cache.put(url, response.clone());
-          showToast(" 🎵 Saving sounds... ");
-          console.log('🎵 Cached sound:', url);
+  try {
+    const cache = await caches.open('baking-timer-v6');
+    for (const url of soundUrls) {
+      const match = await cache.match(url);
+      if (!match) {
+        const resp = await fetch(url);
+        if (resp.ok) {
+          await cache.put(url, resp.clone());
+          console.log('🎵 Added missing sound:', url);
         }
-      } catch (err) {
-        console.warn('⚠️ Failed to cache sound:', url, err);
       }
     }
+  } catch (err) {
+    console.warn('⚠️ Could not verify sound cache:', err);
   }
 }
 
-// Run once at startup (when online)
-if (navigator.onLine) {
-  ensureOfflineSounds();
-}
+// Run once at startup if online
+window.addEventListener('load', () => {
+  if (navigator.onLine) ensureOfflineSounds();
+});
+
+
 
 // ======= PWA INSTALL LOGIC (Auto-install or redirect to Chrome) =======
 

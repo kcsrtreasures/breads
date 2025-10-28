@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v5";
+const CACHE_VERSION = "v6";
 const CACHE_NAME = `baking-timer-${CACHE_VERSION}`;
 
 const urlsToCache = [
@@ -7,7 +7,7 @@ const urlsToCache = [
   '/breads/scripts.js',
   '/breads/manifest.json',
   '/breads/breadroll.png',
-  // Cache all sounds permanently
+  // Sounds — always kept
   '/breads/sounds/alarmdigital.mp3',
   '/breads/sounds/huntrix_golden.mp3',
   '/breads/sounds/SodaPop.mp3',
@@ -16,53 +16,66 @@ const urlsToCache = [
   '/breads/sounds/timer3.mp3'
 ];
 
-// ✅ INSTALL
+// INSTALL — Precache everything
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async cache => {
-      console.log('📦 Caching Baking Timer assets...');
-      await cache.addAll(urlsToCache);
-      console.log('✅ All assets cached successfully.');
-    }).catch(err => console.warn('⚠️ Caching failed:', err))
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('📦 Caching assets...');
+      return cache.addAll(urlsToCache);
+    }).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
-// ✅ ACTIVATE
+// ACTIVATE — Clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            console.log('🧹 Removing old cache:', key);
-            return caches.delete(key);
-          }
-        })
-      )
+    caches.keys().then(keys => 
+      Promise.all(keys.map(key => {
+        if (key !== CACHE_NAME) {
+          console.log('🧹 Removing old cache:', key);
+          return caches.delete(key);
+        }
+      }))
     ).then(() => self.clients.claim())
   );
 });
 
-// ✅ FETCH
+// FETCH — Offline-first for all sound files
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
+  const requestURL = new URL(event.request.url);
+
+  // Always serve sounds from cache first
+  if (requestURL.pathname.startsWith('/breads/sounds/')) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        return cached || fetch(event.request).then(resp => {
+          const clone = resp.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          return resp;
+        }).catch(() => {
+          console.warn('⚠️ Sound file missing offline:', event.request.url);
+          return new Response('', { status: 404 });
+        });
+      })
+    );
+    return;
+  }
+
+  // Normal requests — cache-first, then network
   event.respondWith(
     caches.match(event.request).then(cached => {
       const fetchPromise = fetch(event.request)
         .then(networkResponse => {
-          // Cache a copy for future offline use
           if (networkResponse && networkResponse.status === 200) {
             const cloned = networkResponse.clone();
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, cloned));
           }
           return networkResponse;
         })
-        .catch(() => cached); // if offline, use cache
-
+        .catch(() => cached);
       return cached || fetchPromise;
     })
   );
 });
-
