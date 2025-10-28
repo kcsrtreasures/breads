@@ -276,6 +276,40 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 
 <script>
 
+// global object to track any currently playing audio per timer
+const activeAudios = new Map();
+
+function playAlarmSound(timerId, soundUrl, bellElem) {
+  stopAlarmSound(timerId);
+
+  const audio = preloadedAudios[soundUrl] 
+    ? preloadedAudios[soundUrl].cloneNode(true)  // reuse preloaded buffer
+    : new Audio(soundUrl);
+
+  audio.preload = "auto";
+  audio.loop = true;
+
+  audio.play().catch(() => {/* ignore autoplay block */});
+  activeAudios.set(timerId, audio);
+
+  if (bellElem) bellElem.classList.add("ringing");
+  return audio;
+}
+
+
+function stopAlarmSound(timerId) {
+  const audio = activeAudios.get(timerId);
+  if (audio) {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
+    } catch(e){}
+  }
+  activeAudios.delete(timerId);
+}
+
+
 // ✅ Preload all sound files once
 const soundPaths = [
   "/breads/sounds/alarmdigital.mp3",
@@ -313,7 +347,7 @@ document.body.addEventListener('click', playSilentUnlock, { once: true });
 let timerCount = 1;
 
 let toastOffset = 0;
-function showToast(msg, withStopButton = false, audio = null) {
+function showToast(msg, withStopButton = false, audio = null, timerId = null) {
   const toast = document.createElement("div");
   toast.className = "toast";
   toast.style.left = "50%";
@@ -340,9 +374,12 @@ function showToast(msg, withStopButton = false, audio = null) {
 
     const stopBtn = toast.querySelector("button");
     stopBtn.addEventListener("click", () => {
-      audio.pause();
-      audio.currentTime = 0;
-      audio.loop = false;
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.loop = false;
+      } catch(e){}
+      if (timerId !== null) stopAlarmSound(timerId);
       toast.remove();
       showToast("✅ Sound stopped.");
     });
@@ -370,6 +407,7 @@ function showToast(msg, withStopButton = false, audio = null) {
   toastOffset += 70;
   setTimeout(() => (toastOffset = Math.max(0, toastOffset - 70)), 4000);
 }
+
 
 
 
@@ -512,22 +550,11 @@ function createTimer(container, number){
           running = false;
 
           // Create a fresh Audio instance at play time so multiple timers can play simultaneously.
-          try {
-            alarmAudio = new Audio(selectedSound || (soundSelect ? soundSelect.value : ""));
-            alarmAudio.preload = "auto";
-            alarmAudio.loop = true;
-            alarmAudio.currentTime = 0;
-            alarmAudio.play().catch(()=>{ /* ignore blocked play if any */ });
-          } catch(e) {
-            alarmAudio = null;
-          }
+          const bell = container.querySelector(".bell");
+          alarmAudio = playAlarmSound(number, selectedSound || (soundSelect ? soundSelect.value : ""), bell);
 
           const name = timerNameInput.value.trim() || defaultName;
-          showToast(`⏰ ${name} done! Check your bread!`, true, alarmAudio);
-
-          // Animate the bell icon
-          const bell = container.querySelector(".bell");
-          if (bell) bell.classList.add("ringing");
+          showToast(`⏰ ${name} done! Check your bread!`, true, alarmAudio, number);
 
           return;
         }

@@ -16,14 +16,18 @@ const urlsToCache = [
 
 
 // Install and cache assets
-self.addEventListener('install', (event) => {
+self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('📦 Caching app shell & sounds');
-      return cache.addAll(urlsToCache);
-    }).then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      console.log('📦 Caching app shell & sounds...');
+      await cache.addAll(urlsToCache);
+      console.log('✅ All assets cached.');
+    })()
   );
+  self.skipWaiting();
 });
+
 
 
 // Serve cached content when offline
