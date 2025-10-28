@@ -279,6 +279,23 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 // global object to track any currently playing audio per timer
 const activeAudios = new Map();
 
+// ✅ Preload all sound files once
+const soundPaths = [
+  "/breads/sounds/alarmdigital.mp3",
+  "/breads/sounds/huntrix_golden.mp3",
+  "/breads/sounds/SodaPop.mp3",
+  "/breads/sounds/timer1.mp3",
+  "/breads/sounds/timer2.mp3",
+  "/breads/sounds/timer3.mp3"
+];
+
+const preloadedAudios = {};
+soundPaths.forEach(path => {
+  const audio = new Audio(path);
+  audio.preload = "auto";
+  preloadedAudios[path] = audio;
+});
+
 function playAlarmSound(timerId, soundUrl, bellElem) {
   stopAlarmSound(timerId);
 
@@ -288,8 +305,12 @@ function playAlarmSound(timerId, soundUrl, bellElem) {
 
   audio.preload = "auto";
   audio.loop = true;
+  audio.volume = 1.0;
+  audio.muted = false;
 
-  audio.play().catch(() => {/* ignore autoplay block */});
+  audio.play().catch(() => {
+    showToast("⚠️ Sound unavailable offline. Please reconnect once.");
+    /* ignore autoplay block */});
   activeAudios.set(timerId, audio);
 
   if (bellElem) bellElem.classList.add("ringing");
@@ -308,25 +329,6 @@ function stopAlarmSound(timerId) {
   }
   activeAudios.delete(timerId);
 }
-
-
-// ✅ Preload all sound files once
-const soundPaths = [
-  "/breads/sounds/alarmdigital.mp3",
-  "/breads/sounds/huntrix_golden.mp3",
-  "/breads/sounds/SodaPop.mp3",
-  "/breads/sounds/timer1.mp3",
-  "/breads/sounds/timer2.mp3",
-  "/breads/sounds/timer3.mp3"
-];
-
-const preloadedAudios = {};
-soundPaths.forEach(path => {
-  const audio = new Audio(path);
-  audio.preload = "auto";
-  preloadedAudios[path] = audio;
-});
-
 
 /* ---------- Quick helpers ---------- */
 const playSilentUnlock = () => {
@@ -773,40 +775,30 @@ window.addEventListener("load", () => {
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
-      .register("service-worker.js")
+      .register("/breads/service-worker.js")
       .then((reg) => {
         console.log("✅ Service Worker registered:", reg.scope);
+
         reg.onupdatefound = () => {
           const newSW = reg.installing;
           if (newSW) {
             newSW.onstatechange = () => {
               if (newSW.state === "installed" && navigator.serviceWorker.controller) {
-                showToast("🔄 New version available! Reload to update.");
+                showToast("🔄 New version available! Please refresh or reinstall the app.");
               }
             };
           }
         };
-
-        caches.open("timer-audio-cache").then((cache) => {
-          cache.addAll([
-            '/breads/timer.html',
-            '/breads/styles.css',
-            '/breads/scripts.js',
-            '/breads/manifest.json',
-            '/breads/breadroll.png',
-            '/breads/logo4.png',
-            '/breads/sounds/alarmdigital.mp3',
-            '/breads/sounds/huntrix_golden.mp3',
-            '/breads/sounds/SodaPop.mp3',
-            '/breads/sounds/timer1.mp3',
-            '/breads/sounds/timer2.mp3',
-            '/breads/sounds/timer3.mp3'
-          ]).catch(() => {});
-        });
       })
       .catch((err) => console.log("❌ SW registration failed:", err));
+
+    // Auto-reload when new service worker activates
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
   });
 }
+
 
 
 
