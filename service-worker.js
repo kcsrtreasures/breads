@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v4";
+const CACHE_VERSION = "v5";
 const CACHE_NAME = `baking-timer-${CACHE_VERSION}`;
 
 const urlsToCache = [
@@ -46,25 +46,23 @@ self.addEventListener('activate', event => {
 
 // ✅ FETCH
 self.addEventListener('fetch', event => {
-  // Ignore non-GET requests
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request).then(response => {
-      if (response) return response; // Serve from cache first
-
-      return fetch(event.request)
-        .then(async res => {
-          // Cache new files fetched online
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(event.request, res.clone());
-          return res;
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request)
+        .then(networkResponse => {
+          // Cache a copy for future offline use
+          if (networkResponse && networkResponse.status === 200) {
+            const cloned = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, cloned));
+          }
+          return networkResponse;
         })
-        .catch(() => {
-          // ⚠️ Offline fallback — let the page continue working
-          console.log('📴 Offline: Resource not cached:', event.request.url);
-          return new Response('', { status: 200 });
-        });
+        .catch(() => cached); // if offline, use cache
+
+      return cached || fetchPromise;
     })
   );
 });
+
