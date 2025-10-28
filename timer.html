@@ -769,6 +769,7 @@ if ("serviceWorker" in navigator) {
       .then((reg) => {
         console.log("✅ Service Worker registered:", reg.scope);
 
+        // When a new version of the service worker is found
         reg.onupdatefound = () => {
           const newSW = reg.installing;
           if (newSW) {
@@ -779,15 +780,25 @@ if ("serviceWorker" in navigator) {
             };
           }
         };
+
+        // Listen for manual update trigger from app (e.g. Install button)
+        navigator.serviceWorker.addEventListener("message", (event) => {
+          if (event.data && event.data.type === "CHECK_FOR_UPDATE") {
+            console.log("🔍 Manual update check triggered.");
+            reg.update();
+          }
+        });
       })
       .catch((err) => console.log("❌ SW registration failed:", err));
 
-    // Auto-reload when new service worker activates
+    // Auto reload when a new service worker activates
     navigator.serviceWorker.addEventListener("controllerchange", () => {
+      console.log("♻️ Service Worker activated — reloading page...");
       window.location.reload();
     });
   });
 }
+
 
 
 
