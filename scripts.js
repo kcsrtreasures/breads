@@ -49,6 +49,11 @@ function selectEnsaymadaSize(size) {
   document.getElementById('ensaymadaPrice').innerHTML = `<strong>RM ${currentEnsaymadaPrice.toFixed(2)}</strong>`;
 }
 
+// === Initialize Ensaymada on page load ===
+document.addEventListener("DOMContentLoaded", () => {
+  selectEnsaymadaSize("large"); // set default view
+});
+
 
 
 
