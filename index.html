@@ -50,23 +50,36 @@
 <main class="main">
 <div class="container">
   <div class="content">
-  <!-- PRODUCTS SECTION -->
-  <section class="products">
-    <!-- Special Ensaymada -->
-    <div class="product">
-      <img src="ensaymada2.jpg" onclick="toggleZoom(this)" alt="Special Ensaymada">
-      <h2>Special Ensaymada</h2>
-      <p>Soft, buttery, and topped with cheese — a nostalgic Filipino treat.</p>
-      <p><strong>RM 8.00/pc.</strong></p>
+<!-- PRODUCTS SECTION -->
+<section class="products">
+  <!-- Special Ensaymada -->
+  <div class="product">
+    <img id="ensaymadaImage" src="ensaymada_large.jpg" onclick="toggleZoom(this)" alt="Special Ensaymada">
+    <h2>Special Ensaymada</h2>
+    <p>Soft, buttery, and topped with cheese — a nostalgic Filipino treat.</p>
 
-      <div class="quantity-control">
-        <button type="button" id="minus-ensaymada" onclick="changeQuantity('qty-ensaymada', -1)">−</button>
-        <input type="number" id="qty-ensaymada" min="1" max="99" value="0" step="1" />
-        <button type="button" onclick="changeQuantity('qty-ensaymada', 1)">+</button>
-      </div>
+    <!-- Visible price (updates when size changes) -->
+    <p id="ensaymadaPrice"><strong>RM 8.00</strong></p>
 
-      <button type="button" onclick="addToCart('Special Ensaymada', document.getElementById('qty-ensaymada').value, 8.00)">Add to Cart</button>
+    <!-- Size Options -->
+    <div class="size-options">
+      <button class="size-btn active" data-size="small" onclick="selectEnsaymadaSize('small')">Small</button>
+      <button class="size-btn" data-size="medium" onclick="selectEnsaymadaSize('medium')">Medium</button>
+      <button class="size-btn" data-size="large" onclick="selectEnsaymadaSize('large')">Large</button>
     </div>
+
+    <!-- Quantity control -->
+    <div class="quantity-control">
+      <button type="button" id="minus-ensaymada" onclick="changeQuantity('qty-ensaymada', -1)">−</button>
+      <input type="number" id="qty-ensaymada" min="1" max="99" value="0" step="1" />
+      <button type="button" onclick="changeQuantity('qty-ensaymada', 1)">+</button>
+    </div>
+
+    <!-- Add to Cart -->
+    <button type="button" onclick="addToCart(`Special Ensaymada (${currentEnsaymadaSize})`, document.getElementById('qty-ensaymada').value, currentEnsaymadaPrice)">Add to Cart</button>
+  </div>
+
+
 
     <!-- Mini Cheese Rolls -->
     <!-- <div class="product">

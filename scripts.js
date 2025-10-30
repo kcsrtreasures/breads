@@ -20,6 +20,41 @@ const FRONT_BASE = window.location.origin
 
 // document.getElementById("cartToggle").addEventListener("click", cartToggle);
 
+// Track selected size & price for Ensaymada
+let currentEnsaymadaSize = "large";
+let currentEnsaymadaPrice = 8.00;
+
+function selectEnsaymadaSize(size) {
+  currentEnsaymadaSize = size;
+
+  // Highlight selected button
+  const buttons = document.querySelectorAll('.size-options .size-btn');
+  buttons.forEach(btn => {
+    if (btn.dataset.size === size) btn.classList.add('active');
+    else btn.classList.remove('active');
+  });
+
+  // Change image based on size
+  const img = document.getElementById('ensaymadaImage');
+  if (size === "small") img.src = "ensaymada_small.jpg";
+  else if (size === "medium") img.src = "ensaymada_medium.jpg";
+  else if (size === "large") img.src = "ensaymada2.jpg";
+
+  // Update price
+  if (size === "small") currentEnsaymadaPrice = 4.00;
+  else if (size === "medium") currentEnsaymadaPrice = 6.00;
+  else if (size === "large") currentEnsaymadaPrice = 8.00;
+
+  // Update visible price on screen
+  document.getElementById('ensaymadaPrice').innerHTML = `<strong>RM ${currentEnsaymadaPrice.toFixed(2)}</strong>`;
+}
+
+
+
+
+
+
+
 function syncCartWithDB() {
   const user = localStorage.getItem("gossipUser");
   if (user) {

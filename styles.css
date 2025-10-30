@@ -309,6 +309,7 @@ section {
   /* margin-bottom: 5px; */
   /* flex: 1 1 100%;
   grid-template-columns: 1fr; */
+  width: 100%;
 
 
 }
@@ -325,8 +326,23 @@ section {
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   /* margin-bottom: 1rem; */
-  min-height: 280px;
+  /* min-height: 280px; */
+    cursor: pointer;
 }
+.product-card {
+  background: #fffaf3;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 1rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+.product:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
 
 .product footer {
   display: flex;
@@ -345,14 +361,18 @@ section {
 
 
 .product img {
+  width: 100%;
   max-width: 100%;
-  max-height: 150px;
+  max-height: 350px;          /* prevents oversized images on big screens */
   object-fit: cover;
+  display: block;
   border-radius: 1rem;
   transition: transform 0.4s ease;
   cursor: pointer;
-
+  aspect-ratio: 4 / 3;
 }
+
+
 
 
 .product h2 {
@@ -362,7 +382,7 @@ section {
 
 .product p {
  margin: 0.3rem 0;
-  font-size: 0.8rem;
+ font-size: 1rem;
 }
 
 .product p strong {
@@ -388,16 +408,38 @@ section {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   background-color: #3ad5eb;
 }
-.product img {
+/* .product img {
   max-height: auto;
   max-width: auto;
   background-size: cover;
-}
+} */
 
 .product img.zoomed {
   transform: scale(1.5);
   z-index: 1;
   position: relative;
+}
+
+/* Size Buttons */
+.size-options {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.size-btn {
+  background: #f5e7d3 !important;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.size-btn.active, .size-btn:hover {
+  background: #c9a574;
+  color: #fff;
+  border-color: #b39260;
 }
 
 .order {
@@ -798,7 +840,8 @@ input[type="number"]::-webkit-outer-spin-button {
     display: grid;
     gap: 1rem;
     grid-template-columns: 1fr;
-    height: 420px;
+    height: 100%;
+
   }
 
   .order {
