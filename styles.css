@@ -376,7 +376,7 @@ section {
 
 
 .product h2 {
- font-size: 0.9rem;
+ font-size: 2rem;
  margin: 0.3rem 0;
 }
 
@@ -386,6 +386,7 @@ section {
 }
 
 .product p strong {
+  font-size: xx-large;
   color: #f57224;
 }
 
@@ -438,7 +439,7 @@ section {
 }
 .size-btn.active, .size-btn:hover {
   background: #c9a574;
-  color: #fff;
+  color: #f57224;
   border-color: #b39260;
 }
 
