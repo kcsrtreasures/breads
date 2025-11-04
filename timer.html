@@ -524,40 +524,50 @@ function createTimer(container, number){
   });
 
   // START button (handles countdown and stopwatch)
+  let startTime = null;
+  let pausedAt = null;
+
   startBtn.addEventListener("click", () => {
-    if(running) return;
+    if (running) return;
 
     const h = parseInt(hoursInput.value) || 0;
     const m = parseInt(minutesInput.value) || 0;
     const s = parseInt(secondsInput.value) || 0;
-
     const isStopwatch = (h === 0 && m === 0 && s === 0);
 
-    // Only initialize totalSeconds if first start or after full reset
-    if(totalSeconds === 0 && !isStopwatch){
-      totalSeconds = h*3600 + m*60 + s;
-      if(totalSeconds <= 0) return alert("Please enter a valid time!");
+    if (totalSeconds === 0 && !isStopwatch) {
+      totalSeconds = h * 3600 + m * 60 + s;
+      if (totalSeconds <= 0) return alert("Please enter a valid time!");
+    }
+
+    // Calculate base time reference
+    const now = Date.now();
+    if (pausedAt) {
+      // Resume case
+      const pauseDuration = (now - pausedAt) / 1000;
+      startTime += pauseDuration * 1000;
+    } else {
+      startTime = now;
     }
 
     running = true;
 
     timer = setInterval(() => {
-      if(isStopwatch){
-        totalSeconds++;
+      const now = Date.now();
+      let elapsed = Math.floor((now - startTime) / 1000);
+
+      if (isStopwatch) {
+        totalSeconds = elapsed;
       } else {
-        if(totalSeconds > 0){
-          totalSeconds--;
-        } else {
+        const remaining = (h * 3600 + m * 60 + s) - elapsed;
+        totalSeconds = Math.max(0, remaining);
+        if (remaining <= 0) {
           clearInterval(timer);
           running = false;
-
-          // Create a fresh Audio instance at play time so multiple timers can play simultaneously.
           const bell = container.querySelector(".bell");
-          alarmAudio = playAlarmSound(number, selectedSound || (soundSelect ? soundSelect.value : ""), bell);
-
+          alarmAudio = playAlarmSound(number, selectedSound || soundSelect.value, bell);
           const name = timerNameInput.value.trim() || defaultName;
           showToast(`⏰ ${name} done! Check your bread!`, true, alarmAudio, number);
-
           return;
         }
       }
@@ -566,11 +576,13 @@ function createTimer(container, number){
     }, 1000);
   });
 
-  // PAUSE button
   pauseBtn.addEventListener("click", () => {
+    if (!running) return;
     running = false;
     clearInterval(timer);
+    pausedAt = Date.now();
   });
+
 
   // RESET button (1 click stop, 2 clicks full reset)
   resetBtn.addEventListener("click", () => {
