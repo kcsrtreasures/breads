@@ -275,11 +275,17 @@ footer { text-align:center; background:linear-gradient(90deg, #e6d5c3, #c9a574);
 </audio>
 
 <script>
+// -----------------------
+// Persistent Baking Timers
+// -----------------------
+
+// storage key
+const TIMERS_KEY = "kcsr_baking_timers_v1";
 
 // global object to track any currently playing audio per timer
 const activeAudios = new Map();
 
-// ✅ Preload all sound files once
+// ✅ Preload all sound files once (keep same list as before)
 const soundPaths = [
   "/breads/sounds/alarmdigital.mp3",
   "/breads/sounds/huntrix_golden.mp3",
@@ -296,12 +302,21 @@ soundPaths.forEach(path => {
   preloadedAudios[path] = audio;
 });
 
+// helper to normalize selected sound value to an absolute path we preloaded
+function normalizeSoundPath(selected) {
+  if (!selected) return soundPaths[0] || "/breads/sounds/alarmdigital.mp3";
+  // selected may be "sounds/..." or "/breads/sounds/..."
+  if (selected.startsWith("/")) return selected;
+  return "/breads/" + selected.replace(/^\/?/, "");
+}
+
 function playAlarmSound(timerId, soundUrl, bellElem) {
   stopAlarmSound(timerId);
 
-  const audio = preloadedAudios[soundUrl] 
-    ? preloadedAudios[soundUrl].cloneNode(true)  // reuse preloaded buffer
-    : new Audio(soundUrl);
+  const fullPath = normalizeSoundPath(soundUrl);
+  const audio = preloadedAudios[fullPath] 
+    ? preloadedAudios[fullPath].cloneNode(true)
+    : new Audio(fullPath);
 
   audio.preload = "auto";
   audio.loop = true;
@@ -309,14 +324,13 @@ function playAlarmSound(timerId, soundUrl, bellElem) {
   audio.muted = false;
 
   audio.play().catch(() => {
-    showToast("⚠️ Sound unavailable offline. Please reconnect once.");
-    /* ignore autoplay block */});
+    showToast("⚠️ Sound unavailable offline or autoplay blocked. Tap to allow audio.");
+  });
   activeAudios.set(timerId, audio);
 
   if (bellElem) bellElem.classList.add("ringing");
   return audio;
 }
-
 
 function stopAlarmSound(timerId) {
   const audio = activeAudios.get(timerId);
@@ -330,24 +344,15 @@ function stopAlarmSound(timerId) {
   activeAudios.delete(timerId);
 }
 
-/* ---------- Quick helpers ---------- */
+// Unlock audio on first interaction (some mobile browsers require it)
 const playSilentUnlock = () => {
-  // Unlock audio on first interaction (some mobile browsers require it)
-  const ding=document.getElementById('dingSound');
-  ding.play().then(()=>{ 
-    ding.pause(); 
-    ding.currentTime=0; 
-  }).catch(()=>{});
+  const ding = document.getElementById('dingSound');
+  if (!ding) return;
+  ding.play().then(()=>{ ding.pause(); ding.currentTime=0; }).catch(()=>{});
 };
 document.body.addEventListener('click', playSilentUnlock, { once: true });
 
-// const dingSound = document.getElementById("dingSound");
-// document.body.addEventListener("click", () => { 
-//   dingSound.play().then(() => { dingSound.pause(); dingSound.currentTime=0; }).catch(() => {}); 
-// }, { once: true });
-
-let timerCount = 1;
-
+// Toast helper (unchanged styling usage)
 let toastOffset = 0;
 function showToast(msg, withStopButton = false, audio = null, timerId = null) {
   const toast = document.createElement("div");
@@ -410,235 +415,43 @@ function showToast(msg, withStopButton = false, audio = null, timerId = null) {
   setTimeout(() => (toastOffset = Math.max(0, toastOffset - 70)), 4000);
 }
 
-
-
-
-function createTimer(container, number){
-  let timer = null;
-  let totalSeconds = 0;
-  let running = false;
-  let resetClickedOnce = false;
-
-  const timerNameInput = container.querySelector(".timerName");
-  const hoursInput = container.querySelector(".hoursInput");
-  const minutesInput = container.querySelector(".minutesInput");
-  const secondsInput = container.querySelector(".secondsInput");
-  const timeDisplay = container.querySelector(".timeDisplay");
-  const startBtn = container.querySelector(".startBtn");
-  const pauseBtn = container.querySelector(".pauseBtn");
-  const resetBtn = container.querySelector(".resetBtn");
-  const closeBtn = container.querySelector(".closeBtn");
-  const soundSelect = container.querySelector(".soundSelect");
-
-  // label/title + bell in header
-  const defaultName = `Timer ${number}`;
-  const title = container.querySelector("h2");
-  if (title) {
-    title.innerHTML = `⏲️ <span class="timer-label">${defaultName}</span> <span class="bell">🔔</span>`;
+// --------------------
+// Persistent store
+// --------------------
+function saveTimersToStorage(timersArray) {
+  try {
+    localStorage.setItem(TIMERS_KEY, JSON.stringify(timersArray));
+  } catch (e) {
+    console.warn("Could not save timers:", e);
   }
-
-  // Keep the chosen sound src in a variable. We'll create a fresh Audio when playing.
-  let selectedSound = soundSelect ? soundSelect.value : null;
-
-  // reference to the currently-playing alarm Audio for this timer (if any)
-  let alarmAudio = null;
-
-  // Update header when timer name changes (keep bell)
-  timerNameInput.addEventListener('input', () => {
-    const h2 = container.querySelector("h2");
-    const name = timerNameInput.value || defaultName;
-    if (h2) h2.innerHTML = `⏲️ ${name} <span class="bell">🔔</span>`;
-  });
-
-  // Update selected sound when user changes dropdown
-  if (soundSelect) {
-    soundSelect.addEventListener('change', () => {
-      selectedSound = soundSelect.value;
-      // optional: warm-up preload using existing preloadedAudios if present
-      if (preloadedAudios && preloadedAudios[selectedSound]) {
-        // nothing else needed — file is cached/preloaded
-      }
-    });
-  }
-
-  // Update time display from inputs or totalSeconds
-  function updateDisplay(){
-    let dispH, dispM, dispS;
-
-    if(running || totalSeconds > 0){
-      dispH = Math.floor(totalSeconds / 3600);
-      dispM = Math.floor((totalSeconds % 3600) / 60);
-      dispS = totalSeconds % 60;
-    } else {
-      const h = parseInt(hoursInput.value) || 0;
-      const m = parseInt(minutesInput.value) || 0;
-      const s = parseInt(secondsInput.value) || 0;
-      dispH = h; dispM = m; dispS = s;
-    }
-
-    timeDisplay.textContent = `${dispH.toString().padStart(2,"0")}:${dispM.toString().padStart(2,"0")}:${dispS.toString().padStart(2,"0")}`;
-
-    // Disable decrement buttons if at min
-    container.querySelectorAll(".time-input").forEach(ti=>{
-      const input = ti.querySelector("input");
-      const decBtn = ti.querySelector(".decBtn");
-      if (input && decBtn) decBtn.disabled = parseInt(input.value) <= parseInt(input.min);
-    });
-  }
-
-  // stop and cleanup alarm audio for this timer
-  function stopAlarmAudio() {
-    if (alarmAudio) {
-      try {
-        alarmAudio.pause();
-        alarmAudio.currentTime = 0;
-        alarmAudio.loop = false;
-      } catch(e) { /* ignore */ }
-      alarmAudio = null;
-    }
-    const bell = container.querySelector(".bell");
-    if (bell) bell.classList.remove("ringing");
-  }
-
-  // Increment/decrement buttons
-  container.querySelectorAll(".incBtn, .decBtn").forEach(btn=>{
-    let interval;
-    const input = btn.closest(".time-input").querySelector("input");
-    const step = btn.classList.contains("incBtn") ? 1 : -1;
-    const min = parseInt(input.min);
-    const max = parseInt(input.max);
-
-    const change = () => {
-      let val = parseInt(input.value) || 0;
-      val += step;
-      val = Math.min(max, Math.max(min, val));
-      input.value = val;
-      updateDisplay();
-    };
-
-    btn.addEventListener("mousedown", ()=>{ change(); interval=setInterval(change,150); });
-    btn.addEventListener("mouseup", ()=>clearInterval(interval));
-    btn.addEventListener("mouseleave", ()=>clearInterval(interval));
-    btn.addEventListener("touchstart", e=>{ e.preventDefault(); change(); interval=setInterval(change,150); }, {passive:false});
-    btn.addEventListener("touchend", ()=>clearInterval(interval));
-  });
-
-  // START button (handles countdown and stopwatch)
-  let startTime = null;
-  let pausedAt = null;
-
-  startBtn.addEventListener("click", () => {
-    if (running) return;
-
-    const h = parseInt(hoursInput.value) || 0;
-    const m = parseInt(minutesInput.value) || 0;
-    const s = parseInt(secondsInput.value) || 0;
-    const isStopwatch = (h === 0 && m === 0 && s === 0);
-
-    if (totalSeconds === 0 && !isStopwatch) {
-      totalSeconds = h * 3600 + m * 60 + s;
-      if (totalSeconds <= 0) return alert("Please enter a valid time!");
-    }
-
-    // Calculate base time reference
-    const now = Date.now();
-    if (pausedAt) {
-      // Resume case
-      const pauseDuration = (now - pausedAt) / 1000;
-      startTime += pauseDuration * 1000;
-    } else {
-      startTime = now;
-    }
-
-    running = true;
-
-    timer = setInterval(() => {
-      const now = Date.now();
-      let elapsed = Math.floor((now - startTime) / 1000);
-
-      if (isStopwatch) {
-        totalSeconds = elapsed;
-      } else {
-        const remaining = (h * 3600 + m * 60 + s) - elapsed;
-        totalSeconds = Math.max(0, remaining);
-        if (remaining <= 0) {
-          clearInterval(timer);
-          running = false;
-          const bell = container.querySelector(".bell");
-          alarmAudio = playAlarmSound(number, selectedSound || soundSelect.value, bell);
-          const name = timerNameInput.value.trim() || defaultName;
-          showToast(`⏰ ${name} done! Check your bread!`, true, alarmAudio, number);
-          return;
-        }
-      }
-
-      updateDisplay();
-    }, 1000);
-  });
-
-  pauseBtn.addEventListener("click", () => {
-    if (!running) return;
-    running = false;
-    clearInterval(timer);
-    pausedAt = Date.now();
-  });
-
-
-  // RESET button (1 click stop, 2 clicks full reset)
-  resetBtn.addEventListener("click", () => {
-    clearInterval(timer);
-    running = false;
-
-    // stop the alarmSound and bell immediately
-    stopAlarmAudio();
-
-    if(!resetClickedOnce){
-      const name = timerNameInput.value.trim() || defaultName;
-      showToast(`⏹ ${name} stopped. Click again to reset.`);
-      resetClickedOnce = true;
-      setTimeout(()=>resetClickedOnce=false,4000);
-      return;
-    }
-
-    // Full reset
-    hoursInput.value = '0';
-    minutesInput.value = '0';
-    secondsInput.value = '0';
-    totalSeconds = 0;
-    updateDisplay();
-    showToast("🔁 Timer fully reset.");
-    resetClickedOnce = false;
-  });
-
-  // CLOSE button
-  if(closeBtn){
-    closeBtn.addEventListener("click", () => {
-      running=false;
-      clearInterval(timer);
-
-      // stop alarm and bell
-      stopAlarmAudio();
-
-      // remove container from DOM
-      container.remove();
-    });
-  }
-
-  // Initial display
-  updateDisplay();
 }
 
+function loadTimersFromStorage() {
+  try {
+    const raw = localStorage.getItem(TIMERS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) || [];
+  } catch (e) {
+    console.warn("Could not load timers:", e);
+    return [];
+  }
+}
 
+function removeTimerFromStorage(id) {
+  const arr = loadTimersFromStorage().filter(t => t.id !== id);
+  saveTimersToStorage(arr);
+}
 
+// --------------------
+// DOM helpers
+// --------------------
+const timersWrapper = document.getElementById("timersWrapper");
+let timerCount = 1; // used for default display numbering
 
-
-document.querySelectorAll(".timer-container").forEach((t)=>createTimer(t, timerCount++));
-
-document.getElementById("addTimerBtn").addEventListener("click", ()=>{
-  const timersWrapper=document.getElementById("timersWrapper");
-  const newTimer=document.createElement("div");
-  newTimer.className="timer-container";
-  newTimer.innerHTML=`
+function createTimerElement() {
+  const el = document.createElement("div");
+  el.className = "timer-container";
+  el.innerHTML = `
     <div class="timer-row">
       <input type="text" class="timerName" placeholder="Optional: Timer Name">
       <select class="soundSelect" aria-label="Select sound">
@@ -676,14 +489,457 @@ document.getElementById("addTimerBtn").addEventListener("click", ()=>{
       <button class="closeBtn">❌ Close</button>
     </div>
   `;
-  timersWrapper.appendChild(newTimer);
+  return el;
+}
 
+// --------------------
+// Timer creation logic with persistence
+// --------------------
+function createTimer(container, number, state = null) {
+  // internal runtime state for this timer
+  // If `state` is provided, it is the persisted state object loaded from localStorage.
+  // persisted state fields we expect:
+  // { id, name, sound, duration, mode, startTime, pausedAt, running, pausedRemaining, offsetSeconds, createdAt }
+  let timer = null;
+  let resetClickedOnce = false;
+
+  // DOM refs
+  const timerNameInput = container.querySelector(".timerName");
+  const hoursInput = container.querySelector(".hoursInput");
+  const minutesInput = container.querySelector(".minutesInput");
+  const secondsInput = container.querySelector(".secondsInput");
+  const timeDisplay = container.querySelector(".timeDisplay");
+  const startBtn = container.querySelector(".startBtn");
+  const pauseBtn = container.querySelector(".pauseBtn");
+  const resetBtn = container.querySelector(".resetBtn");
+  const closeBtn = container.querySelector(".closeBtn");
+  const soundSelect = container.querySelector(".soundSelect");
+  const title = container.querySelector("h2");
+
+  const defaultName = `Timer ${number}`;
+  if (title) title.innerHTML = `⏲️ <span class="timer-label">${defaultName}</span> <span class="bell">🔔</span>`;
+
+  // persisted id (generate if none)
+  const id = (state && state.id) ? state.id : `timer_${Date.now()}_${Math.floor(Math.random()*9999)}`;
+
+  // persisted fields with defaults
+  let name = (state && state.name) || "";
+  let sound = (state && state.sound) || "sounds/alarmdigital.mp3";
+  let duration = (state && typeof state.duration === "number") ? state.duration : 0; // seconds for countdown
+  let mode = (state && state.mode) || "countdown"; // "countdown" or "stopwatch"
+  let startTime = (state && state.startTime) || null; // timestamp ms when running started
+  let pausedAt = (state && state.pausedAt) || null; // timestamp ms when paused
+  let running = !!(state && state.running);
+  let pausedRemaining = (state && typeof state.pausedRemaining === "number") ? state.pausedRemaining : null; // seconds left for countdown when paused
+  let offsetSeconds = (state && typeof state.offsetSeconds === "number") ? state.offsetSeconds : 0; // for stopwatch stored elapsed when paused
+  let alarmAudio = null;
+  let finished = !!(state && state.finished);
+
+  // populate DOM from state (if available)
+  if (name) {
+    timerNameInput.value = name;
+    const h2 = container.querySelector("h2");
+    if (h2) h2.innerHTML = `⏲️ ${name} <span class="bell">🔔</span>`;
+  }
+
+  // set sound select (use relative values like 'sounds/..' as your UI uses)
+  if (soundSelect) {
+    // pick the option that matches either the relative or absolute form
+    const rel = sound.startsWith("/breads/") ? sound.replace("/breads/", "") : sound;
+    const option = Array.from(soundSelect.options).find(o => o.value === rel || o.value === sound);
+    if (option) soundSelect.value = option.value;
+  }
+
+  // if there's a saved duration, set inputs accordingly (duration in seconds)
+  if (typeof duration === "number" && duration > 0) {
+    const h = Math.floor(duration / 3600);
+    const m = Math.floor((duration % 3600) / 60);
+    const s = duration % 60;
+    hoursInput.value = String(h);
+    minutesInput.value = String(m);
+    secondsInput.value = String(s);
+  }
+
+  // Update header when timer name changes (keep bell)
+  timerNameInput.addEventListener('input', () => {
+    name = timerNameInput.value || "";
+    const h2 = container.querySelector("h2");
+    const disp = name || defaultName;
+    if (h2) h2.innerHTML = `⏲️ ${disp} <span class="bell">🔔</span>`;
+    persistState();
+  });
+
+  // Update selected sound when user changes dropdown
+  if (soundSelect) {
+    soundSelect.addEventListener('change', () => {
+      sound = soundSelect.value;
+      persistState();
+      // warm-up preload if available
+      const full = normalizeSoundPath(sound);
+      if (preloadedAudios[full]) {
+        // nothing else needed
+      }
+    });
+  }
+
+  // Increment/decrement buttons behavior (unchanged)
+  container.querySelectorAll(".incBtn, .decBtn").forEach(btn=>{
+    let interval;
+    const input = btn.closest(".time-input").querySelector("input");
+    const step = btn.classList.contains("incBtn") ? 1 : -1;
+    const min = parseInt(input.min);
+    const max = parseInt(input.max);
+
+    const change = () => {
+      let val = parseInt(input.value) || 0;
+      val += step;
+      val = Math.min(max, Math.max(min, val));
+      input.value = val;
+      persistInputsToDuration(); // update duration from inputs
+      updateDisplay();
+    };
+
+    btn.addEventListener("mousedown", ()=>{ change(); interval=setInterval(change,150); });
+    btn.addEventListener("mouseup", ()=>clearInterval(interval));
+    btn.addEventListener("mouseleave", ()=>clearInterval(interval));
+    btn.addEventListener("touchstart", e=>{ e.preventDefault(); change(); interval=setInterval(change,150); }, {passive:false});
+    btn.addEventListener("touchend", ()=>clearInterval(interval));
+  });
+
+  function persistInputsToDuration() {
+    const h = parseInt(hoursInput.value) || 0;
+    const m = parseInt(minutesInput.value) || 0;
+    const s = parseInt(secondsInput.value) || 0;
+    duration = h*3600 + m*60 + s;
+    if (duration <= 0) {
+      mode = "stopwatch"; // when user sets 0 length, treat as stopwatch
+    } else {
+      mode = "countdown";
+    }
+    persistState();
+  }
+
+  // stop alarm audio for this timer
+  function stopAlarmAudioLocal() {
+    if (alarmAudio) {
+      try {
+        alarmAudio.pause();
+        alarmAudio.currentTime = 0;
+        alarmAudio.loop = false;
+      } catch(e){}
+      alarmAudio = null;
+    }
+    const bell = container.querySelector(".bell");
+    if (bell) bell.classList.remove("ringing");
+  }
+
+  // Display update uses the persisted runtime fields and current time
+  function updateDisplay() {
+    let dispSeconds = 0;
+
+    if (running) {
+      // compute from startTime
+      const now = Date.now();
+      if (mode === "stopwatch") {
+        // elapsed = offsetSeconds + (now - startTime)
+        const elapsed = offsetSeconds + Math.floor((now - startTime) / 1000);
+        dispSeconds = Math.max(0, elapsed);
+      } else {
+        // countdown: remaining = pausedRemaining (if paused before) or duration - elapsed
+        const elapsed = Math.floor((now - startTime) / 1000);
+        const remaining = Math.max(0, duration - elapsed);
+        dispSeconds = remaining;
+        if (remaining <= 0) {
+          // finished: handle finish once
+          finishTimer();
+          return;
+        }
+      }
+    } else {
+      // not running: show paused value or input values
+      if (pausedAt !== null) {
+        // timer was paused: show pausedRemaining for countdown or offsetSeconds for stopwatch
+        if (mode === "stopwatch") {
+          dispSeconds = offsetSeconds;
+        } else {
+          dispSeconds = (typeof pausedRemaining === "number") ? pausedRemaining : duration;
+        }
+      } else {
+        // never started: show input values or zero
+        if (mode === "stopwatch" && offsetSeconds > 0) {
+          dispSeconds = offsetSeconds;
+        } else {
+          // composition of inputs
+          const h = parseInt(hoursInput.value) || 0;
+          const m = parseInt(minutesInput.value) || 0;
+          const s = parseInt(secondsInput.value) || 0;
+          dispSeconds = h*3600 + m*60 + s;
+        }
+      }
+    }
+
+    // format HH:MM:SS
+    const hh = Math.floor(dispSeconds / 3600);
+    const mm = Math.floor((dispSeconds % 3600) / 60);
+    const ss = dispSeconds % 60;
+    timeDisplay.textContent = `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+
+    // disable decrement if at min
+    container.querySelectorAll(".time-input").forEach(ti=>{
+      const input = ti.querySelector("input");
+      const decBtn = ti.querySelector(".decBtn");
+      if (input && decBtn) decBtn.disabled = parseInt(input.value) <= parseInt(input.min);
+    });
+  }
+
+  // Called when a countdown reaches zero
+  function finishTimer() {
+    // prevent multiple calls
+    if (!running && (!startTime || finished)) return;
+    finished = true;
+    running = false;
+    clearInterval(timer);
+    stopAlarmAudioLocal(); // ensure no previous audio playing
+    const bell = container.querySelector(".bell");
+    alarmAudio = playAlarmSound(id, soundSelect ? soundSelect.value : sound, bell);
+    const nameToShow = timerNameInput.value.trim() || defaultName;
+    showToast(`⏰ ${nameToShow} done! Check your bread!`, true, alarmAudio, id);
+    // persist finished state
+    persistState();
+  }
+
+  // Start/resume
+  startBtn.addEventListener("click", () => {
+    // determine mode and duration from inputs if never set
+    persistInputsToDuration();
+
+    if (running) return;
+
+    // If previously finished, reset finished flag
+    if (finished) finished = false;
+
+    const now = Date.now();
+
+    if (pausedAt) {
+      // resuming -> compute how to set startTime based on pause values
+      if (mode === "stopwatch") {
+        // offsetSeconds already has the elapsed time at pause
+        startTime = now - (offsetSeconds * 1000);
+      } else {
+        // countdown: pausedRemaining stored at pause
+        // Set startTime so that remaining = pausedRemaining at current time
+        startTime = now - ((duration - pausedRemaining) * 1000);
+      }
+      pausedAt = null;
+    } else {
+      // fresh start
+      if (mode === "stopwatch") {
+        offsetSeconds = 0;
+        startTime = now;
+      } else {
+        // countdown: if user set inputs and duration > 0, we set startTime so full duration will elapse
+        startTime = now;
+      }
+    }
+
+    running = true;
+
+    // save state immediately
+    persistState();
+
+    // visual tick every second (the calculation uses Date.now(), so it's robust to throttling)
+    timer = setInterval(() => {
+      updateDisplay();
+    }, 1000);
+    updateDisplay(); // immediate update
+  });
+
+  // Pause
+  pauseBtn.addEventListener("click", () => {
+    if (!running) return;
+    running = false;
+    clearInterval(timer);
+    pausedAt = Date.now();
+
+    // compute pausedRemaining or offsetSeconds
+    const now = Date.now();
+    if (mode === "stopwatch") {
+      offsetSeconds = Math.floor((now - startTime) / 1000);
+    } else {
+      const elapsed = Math.floor((now - startTime) / 1000);
+      const remaining = Math.max(0, duration - elapsed);
+      pausedRemaining = remaining;
+    }
+
+    persistState();
+    updateDisplay();
+  });
+
+  // Reset (1 click stop, 2 clicks full reset)
+  resetBtn.addEventListener("click", () => {
+    clearInterval(timer);
+    running = false;
+    pausedAt = null;
+    stopAlarmAudioLocal();
+
+    if(!resetClickedOnce){
+      const nameToShow = timerNameInput.value.trim() || defaultName;
+      showToast(`⏹ ${nameToShow} stopped. Click again to reset.`);
+      resetClickedOnce = true;
+      setTimeout(()=>resetClickedOnce=false,4000);
+      // persist stop state
+      persistState();
+      return;
+    }
+
+    // Full reset:
+    hoursInput.value = '0';
+    minutesInput.value = '0';
+    secondsInput.value = '0';
+    duration = 0;
+    mode = "stopwatch";
+    offsetSeconds = 0;
+    pausedRemaining = null;
+    startTime = null;
+    pausedAt = null;
+    finished = false;
+
+    updateDisplay();
+    persistState();
+    showToast("🔁 Timer fully reset.");
+    resetClickedOnce = false;
+  });
+
+  // Close (remove timer)
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      running = false;
+      clearInterval(timer);
+      stopAlarmAudioLocal();
+      container.remove();
+      removeTimerFromStorage(id);
+    });
+  }
+
+  // persist current state to localStorage
+  function persistState() {
+    // load existing array, replace or append
+    const arr = loadTimersFromStorage();
+    const stateObj = {
+      id,
+      name: timerNameInput.value || "",
+      sound: soundSelect ? soundSelect.value : sound,
+      duration: duration,
+      mode: mode,
+      startTime: startTime || null,
+      pausedAt: pausedAt || null,
+      running: !!running,
+      pausedRemaining: (typeof pausedRemaining === "number") ? pausedRemaining : null,
+      offsetSeconds: offsetSeconds || 0,
+      finished: !!finished,
+      createdAt: (state && state.createdAt) ? state.createdAt : (Date.now())
+    };
+
+    const idx = arr.findIndex(t => t.id === id);
+    if (idx >= 0) arr[idx] = stateObj;
+    else arr.push(stateObj);
+    saveTimersToStorage(arr);
+  }
+
+  // initial display and tick setup based on restored state
+  function initializeFromRestored() {
+    // if there's a saved running flag, we must compute correct runtime values
+    if (running && startTime) {
+      // compute how much time passed while we were closed
+      const now = Date.now();
+      if (mode === "stopwatch") {
+        // offsetSeconds remains as is (if it existed) and elapsed becomes offset + (now-startTime)
+        // no change needed; updateDisplay will compute using startTime and offsetSeconds
+      } else {
+        // countdown: check if it reached zero while we were away
+        const elapsed = Math.floor((now - startTime) / 1000);
+        const remaining = duration - elapsed;
+        if (remaining <= 0) {
+          // expired while away — mark finished and trigger alarm now
+          finished = true;
+          running = false;
+          startTime = null;
+          pausedAt = null;
+          pausedRemaining = 0;
+          persistState();
+          // trigger alarm immediately
+          const bell = container.querySelector(".bell");
+          alarmAudio = playAlarmSound(id, soundSelect ? soundSelect.value : sound, bell);
+          const nameToShow = timerNameInput.value.trim() || defaultName;
+          showToast(`⏰ ${nameToShow} done while you were away!`, true, alarmAudio, id);
+          updateDisplay();
+          return;
+        }
+        // otherwise: it is still running: start interval and update
+        timer = setInterval(() => updateDisplay(), 1000);
+      }
+    } else {
+      // if paused and we have pausedRemaining or offsetSeconds, keep those shown
+      // else nothing to do
+    }
+    updateDisplay();
+  }
+
+  // on creation, persist initial state (so timers survive reloads even before starting)
+  persistState();
+
+  // initialize increment/decrement behaviour reads inputs -> update duration
+  persistInputsToDuration();
+
+  // If this timer was created from a saved state, ensure the visual clock is resumed appropriately
+  initializeFromRestored();
+
+  // expose updateDisplay to outside (not necessary but useful)
+  return {
+    id,
+    container,
+    updateDisplay,
+    persistState
+  };
+}
+
+// --------------------
+// Restore timers from storage on load
+// --------------------
+function restoreAllTimersOnLoad() {
+  const saved = loadTimersFromStorage();
+
+  // If storage has saved timers, replace the current DOM with those timers
+  if (saved.length > 0) {
+    timersWrapper.innerHTML = ""; // clear static initial DOM to avoid duplication
+    timerCount = 1;
+    saved.forEach(st => {
+      const el = createTimerElement();
+      timersWrapper.appendChild(el);
+      createTimer(el, timerCount++, st);
+    });
+    return;
+  }
+
+  // else: no saved timers -> wire existing DOM timer(s)
+  document.querySelectorAll(".timer-container").forEach((t) => {
+    createTimer(t, timerCount++);
+  });
+}
+
+// Restore on DOM content loaded
+document.addEventListener("DOMContentLoaded", () => {
+  restoreAllTimersOnLoad();
+});
+
+// When user adds a new timer via button
+document.getElementById("addTimerBtn").addEventListener("click", ()=> {
+  const newTimer = createTimerElement();
+  timersWrapper.appendChild(newTimer);
   createTimer(newTimer, timerCount++);
 });
 
-
-
-// ======= ENSURE SOUNDS ARE FULLY CACHED =======
+// Run ensureOfflineSounds from your previous code (keeps same behavior)
 async function ensureOfflineSounds() {
   const soundUrls = [
     '/breads/sounds/alarmdigital.mp3',
@@ -710,49 +966,32 @@ async function ensureOfflineSounds() {
     console.warn('⚠️ Could not verify sound cache:', err);
   }
 }
-
-// Run once at startup if online
 window.addEventListener('load', () => {
   if (navigator.onLine) ensureOfflineSounds();
 });
 
-
-
-// ======= PWA INSTALL LOGIC (Auto-install or redirect to Chrome) =======
-
+// Keep your PWA/install and service worker registration logic intact below
 let deferredPrompt;
 const installBtn = document.getElementById("installBtn");
 const APP_URL = "https://kcsrtreasures.github.io/breads/timer.html";
-
-// Always show the install button (for manual update/reinstall)
 if (installBtn) installBtn.style.display = "inline-block";
-
-// Detect in-app browsers (Facebook, Messenger, Instagram)
 function isInAppBrowser() {
   const ua = navigator.userAgent || navigator.vendor || window.opera;
   return /FBAN|FBAV|Instagram|Messenger/i.test(ua);
 }
-
-// Detect standalone (already installed)
 function isStandalone() {
   return (
     window.matchMedia("(display-mode: standalone)").matches ||
     navigator.standalone === true
   );
 }
-
-// Catch the Chrome install prompt
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  console.log("✅ beforeinstallprompt available");
   if (installBtn) installBtn.disabled = false;
 });
-
-// Handle install button click
 if (installBtn) {
   installBtn.addEventListener("click", async () => {
-    // Already installed → act as an update checker
     if (isStandalone()) {
       showToast("✅ App is already installed. Checking for updates...");
       if (navigator.serviceWorker?.controller) {
@@ -760,8 +999,6 @@ if (installBtn) {
       }
       return;
     }
-
-    // Inside Facebook/Messenger → redirect to Chrome
     if (isInAppBrowser()) {
       showToast("⚠️ Redirecting to Chrome for installation...");
       setTimeout(() => {
@@ -770,13 +1007,11 @@ if (installBtn) {
           const intentURL = `intent://${APP_URL.replace(/^https?:\/\//, "")}#Intent;scheme=https;package=com.android.chrome;end`;
           window.location.href = intentURL;
         } else {
-          window.open(APP_URL, "_blank"); // iOS → Safari
+          window.open(APP_URL, "_blank");
         }
       }, 800);
       return;
     }
-
-    // Normal Chrome install flow
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
@@ -788,37 +1023,26 @@ if (installBtn) {
       deferredPrompt = null;
       return;
     }
-
-    // Fallback (Safari with no prompt): try open directly, no annoying message
     window.location.href = APP_URL;
   });
 }
-
-// Listen for successful install
 window.addEventListener("appinstalled", () => {
   showToast("✅ App installed successfully!");
   localStorage.setItem("pwaInstalled", "true");
-  if (installBtn) installBtn.style.display = "inline-block"; // Keep visible for update trigger
+  if (installBtn) installBtn.style.display = "inline-block";
 });
-
-// On load, ensure button remains visible
 window.addEventListener("load", () => {
   if (isStandalone()) localStorage.setItem("pwaInstalled", "true");
   if (installBtn) installBtn.style.display = "inline-block";
 });
 
-
-
-
-// ======= SERVICE WORKER REGISTER =======
+// Service worker register (keep existing behavior)
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/breads/service-worker.js")
       .then((reg) => {
         console.log("✅ Service Worker registered:", reg.scope);
-
-        // When a new version of the service worker is found
         reg.onupdatefound = () => {
           const newSW = reg.installing;
           if (newSW) {
@@ -829,30 +1053,22 @@ if ("serviceWorker" in navigator) {
             };
           }
         };
-
-        // Listen for manual update trigger from app (e.g. Install button)
         navigator.serviceWorker.addEventListener("message", (event) => {
           if (event.data && event.data.type === "CHECK_FOR_UPDATE") {
-            console.log("🔍 Manual update check triggered.");
             reg.update();
           }
         });
       })
       .catch((err) => console.log("❌ SW registration failed:", err));
 
-    // Auto reload when a new service worker activates
     navigator.serviceWorker.addEventListener("controllerchange", () => {
       console.log("♻️ Service Worker activated — reloading page...");
       window.location.reload();
     });
   });
 }
-
-
-
-
-
- 
 </script>
+
+
 </body>
 </html>
